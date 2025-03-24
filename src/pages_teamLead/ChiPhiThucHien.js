@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
+import { toast } from 'react-toastify'
 import { del, get, post, put } from '../api/axiosClient'
 
 const CostManagement = () => {
@@ -84,15 +85,24 @@ const CostManagement = () => {
 
   const handleInputChange = e => {
     const { name, value } = e.target
-    setNewWorkContent(prev => ({
-      ...prev,
-      [name]: value,
-    }))
+    setNewWorkContent(prev => {
+      const updatedValues = {
+        ...prev,
+        [name]: value,
+      }
+
+      if (name === 'donGia' || name === 'khoiLuong') {
+        const donGia = parseFloat(updatedValues.donGia) || 0
+        const khoiLuong = parseFloat(updatedValues.khoiLuong) || 0
+        updatedValues.thanhTien = (donGia * khoiLuong).toString()
+      }
+
+      return updatedValues
+    })
   }
 
   const validateForm = () => {
     const requiredFields = [
-      'noiDungCongViec',
       'khoiLuong',
       'donGia',
       'thanhTien',
@@ -105,7 +115,8 @@ const CostManagement = () => {
     const missingFields = requiredFields.filter(field => !newWorkContent[field])
 
     if (missingFields.length > 0) {
-      setError('Vui lòng điền đầy đủ các trường bắt buộc')
+      //setError('Vui lòng điền đầy đủ các trường bắt buộc')
+      toast.error('Vui lòng điền đầy đủ các trường bắt buộc')
       return false
     }
     return true
@@ -129,10 +140,16 @@ const CostManagement = () => {
       }
       await fetchWorkContents()
       resetForm()
+      toast.success('Cập nhật thành công')
     } catch (error) {
-      handleError(
-        error,
-        selectedIndex === null
+      // handleError(
+      //   error,
+      //   selectedIndex === null
+      //     ? 'Lỗi khi thêm công việc'
+      //     : 'Lỗi khi cập nhật công việc',
+      // )
+      toast.error(
+        error.response?.data?.detail || selectedIndex === null
           ? 'Lỗi khi thêm công việc'
           : 'Lỗi khi cập nhật công việc',
       )
@@ -148,8 +165,10 @@ const CostManagement = () => {
         prev.filter(item => item.id !== newWorkContent.id),
       )
       resetForm()
+      toast.success('Xóa thành công')
     } catch (error) {
-      handleError(error, 'Lỗi khi xóa công việc')
+      toast.success(error.response?.data?.detail || 'Lỗi xóa công việc')
+      //handleError(error, 'Lỗi khi xóa công việc')
     }
   }
 
@@ -230,7 +249,8 @@ const CostManagement = () => {
                   <option value=''>Chọn Đội thi công...</option>
                   {teamsList.map(team => (
                     <option key={team.id} value={team.id}>
-                      {team.name}
+                      {team.appUser.fullName +
+                        (team.description ? ' - ' + team.description : '')}
                     </option>
                   ))}
                 </select>
@@ -319,13 +339,13 @@ const CostManagement = () => {
               </div>
               <div>
                 <label className='block text-sm font-medium text-gray-600 mb-1'>
-                  Nội dung công việc *
+                  Nội dung công việc
                 </label>
                 <textarea
                   name='noiDungCongViec'
                   value={newWorkContent.noiDungCongViec}
                   onChange={handleInputChange}
-                  rows={8} // Tùy chỉnh số hàng mặc định
+                  rows={8}
                   className='w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-300'
                 />
               </div>
@@ -434,7 +454,7 @@ const CostManagement = () => {
                   {item.hangMucCongViec?.name || '-'}
                 </td>
                 <td className='py-2 px-4 border-b'>
-                  {item.doiThiCong?.name || '-'}
+                  {item.doiThiCong?.appUser?.fullName || 'chưa có'}
                 </td>
                 <td className='py-2 px-4 border-b'>{item.noiDungCongViec}</td>
                 <td className='py-2 px-4 border-b'>{item.dvt?.name || '-'}</td>

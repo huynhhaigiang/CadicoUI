@@ -6,6 +6,7 @@ import Skeleton from 'react-loading-skeleton'
 import 'react-loading-skeleton/dist/skeleton.css'
 import { useNavigate } from 'react-router-dom'
 import { get } from '../api/axiosClient'
+import DownloadButton from '../components/DownloadButton'
 
 const statusConfig = {
   0: { color: 'bg-gray-100 text-gray-800', label: 'Bảng nháp' },
@@ -20,13 +21,12 @@ const ProjectApprovalListGD = () => {
   const navigate = useNavigate()
   const [state, setState] = useState({
     constructions: [],
-    currentPage: 1,
     loading: false,
     error: null,
     searchTerm: '',
   })
 
-  const itemsPerPage = 10
+  const [selectedStatuses, setSelectedStatuses] = useState([])
 
   useEffect(() => {
     const fetchConstructions = async () => {
@@ -58,7 +58,7 @@ const ProjectApprovalListGD = () => {
       ...project,
       constructionCode: construction.code,
       constructionName: construction.name,
-      fullName: project.congTrinh?.appUser?.fullName || 'N/A',
+      fullName: construction.appUser?.fullName || 'N/A',
       createAt: new Date(project.createAt),
     })),
   )
@@ -66,8 +66,18 @@ const ProjectApprovalListGD = () => {
   // Sort projects by most recent creation date
   const sortedProjects = allProjects.sort((a, b) => b.createAt - a.createAt)
 
-  const filteredProjects = sortedProjects.filter(
-    project =>
+  const handleStatusChange = status => {
+    setSelectedStatuses(prev => {
+      if (prev.includes(status)) {
+        return prev.filter(s => s !== status)
+      } else {
+        return [...prev, status]
+      }
+    })
+  }
+
+  const filteredProjects = sortedProjects.filter(project => {
+    const matchesSearch =
       project.constructionCode
         .toLowerCase()
         .includes(state.searchTerm.toLowerCase()) ||
@@ -75,13 +85,13 @@ const ProjectApprovalListGD = () => {
         .toLowerCase()
         .includes(state.searchTerm.toLowerCase()) ||
       project.code.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
-      project.name.toLowerCase().includes(state.searchTerm.toLowerCase()),
-  )
+      project.name.toLowerCase().includes(state.searchTerm.toLowerCase())
 
-  const paginatedProjects = filteredProjects.slice(
-    (state.currentPage - 1) * itemsPerPage,
-    state.currentPage * itemsPerPage,
-  )
+    const matchesStatus =
+      selectedStatuses.length === 0 || selectedStatuses.includes(project.status)
+
+    return matchesSearch && matchesStatus
+  })
 
   const TableRow = ({ project, index }) => {
     return (
@@ -91,9 +101,6 @@ const ProjectApprovalListGD = () => {
         exit={{ opacity: 0 }}
         className='hover:bg-gray-50 border-b border-gray-100'
       >
-        <td className='px-6 py-4 text-center'>
-          {(state.currentPage - 1) * itemsPerPage + index + 1}
-        </td>
         <td className='px-6 py-4'>{project.constructionCode}</td>
         <td className='px-6 py-4'>{project.code}</td>
         <td className='px-6 py-4'>{project.name}</td>
@@ -108,12 +115,20 @@ const ProjectApprovalListGD = () => {
           </span>
         </td>
         <td className='px-6 py-4'>
-          <button
-            onClick={() => navigate(`/projectapprovalGD/${project.id}/details`)}
-            className='text-blue-600 hover:text-blue-800'
-          >
-            <FaEye className='w-5 h-5' />
-          </button>
+          <div className='flex items-center gap-2'>
+            <button
+              onClick={() =>
+                navigate(`/projectapprovalGD/${project.id}/details`)
+              }
+              className='text-blue-600 hover:text-blue-800'
+            >
+              <FaEye className='w-5 h-5' />
+            </button>
+            {/* <DownloadButton patcId={project.id} /> */}
+            <DownloadButton
+              duongdan={`/phuonganthicong/export/${project.id}`}
+            />
+          </div>
         </td>
       </motion.tr>
     )
@@ -138,6 +153,29 @@ const ProjectApprovalListGD = () => {
               className='w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500'
             />
           </div>
+          <div className='mt-4 flex flex-wrap gap-4'>
+            {[3, 4, 5].map(status => {
+              const config = statusConfig[status]
+              return (
+                <label
+                  key={status}
+                  className='inline-flex items-center space-x-2 cursor-pointer'
+                >
+                  <input
+                    type='checkbox'
+                    checked={selectedStatuses.includes(status)}
+                    onChange={() => handleStatusChange(status)}
+                    className='form-checkbox h-4 w-4 text-blue-600 rounded focus:ring-blue-500'
+                  />
+                  <span
+                    className={`text-sm ${config.color} px-3 py-1 rounded-full`}
+                  >
+                    {config.label}
+                  </span>
+                </label>
+              )
+            })}
+          </div>
         </div>
 
         <div className='bg-white rounded-xl shadow-sm overflow-hidden'>
@@ -146,11 +184,10 @@ const ProjectApprovalListGD = () => {
               <thead className='bg-gray-50'>
                 <tr>
                   {[
-                    'STT',
                     'Mã Công Trình',
                     'Mã Dự Án',
                     'Tên Dự Án',
-                    'Người Tạo',
+                    'Người Phụ Trách',
                     'Ngày Tạo',
                     'Trạng Thái',
                     'Thao tác',
@@ -184,7 +221,7 @@ const ProjectApprovalListGD = () => {
                   </tr>
                 ) : (
                   <AnimatePresence>
-                    {paginatedProjects.map((project, index) => (
+                    {filteredProjects.map((project, index) => (
                       <TableRow
                         key={project.id}
                         project={project}
@@ -198,29 +235,9 @@ const ProjectApprovalListGD = () => {
           </div>
 
           {filteredProjects.length > 0 && (
-            <div className='px-6 py-4 border-t border-gray-200 flex flex-col md:flex-row justify-between items-center gap-4'>
+            <div className='px-6 py-4 border-t border-gray-200'>
               <div className='text-sm text-gray-600'>
-                Hiển thị {paginatedProjects.length} trong tổng{' '}
-                {filteredProjects.length} công trình
-              </div>
-              <div className='flex gap-1'>
-                {Array.from({
-                  length: Math.ceil(filteredProjects.length / itemsPerPage),
-                }).map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() =>
-                      setState(prev => ({ ...prev, currentPage: i + 1 }))
-                    }
-                    className={`px-3 py-1 rounded-md ${
-                      state.currentPage === i + 1
-                        ? 'bg-blue-600 text-white'
-                        : 'hover:bg-gray-100'
-                    }`}
-                  >
-                    {i + 1}
-                  </button>
-                ))}
+                Tổng số công trình: {filteredProjects.length}
               </div>
             </div>
           )}

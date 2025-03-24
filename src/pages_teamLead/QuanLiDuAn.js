@@ -117,6 +117,8 @@ const ProjectManagement = () => {
     }
   }
 
+  const [selectedStatus, setSelectedStatus] = useState([])
+
   const handleError = message => {
     setState(prev => ({
       ...prev,
@@ -243,6 +245,15 @@ const ProjectManagement = () => {
     (state.currentPage - 1) * itemsPerPage,
     state.currentPage * itemsPerPage,
   )
+  // const selectedStatuses = ['3', '4', '5']
+  const filteredConstructions = state.constructions.filter(construction => {
+    const hasMatchingStatus = construction.dsPhuongAnThiCong.some(project => {
+      const status = project.status.toString()
+      return selectedStatus.length === 0 || selectedStatus.includes(status)
+    })
+
+    return hasMatchingStatus
+  })
 
   const ConstructionRow = ({ construction }) => (
     <div className='bg-white rounded-lg shadow-sm overflow-hidden'>
@@ -472,7 +483,10 @@ const ProjectManagement = () => {
                                   >
                                     <FaPrint className="w-5 h-5" />
                                   </button> */}
-                                  <DownloadButton patcId={project.id} />
+                                  <DownloadButton
+                                    duongdan={`/phuonganthicong/export/${project.id}`}
+                                  />
+                                  {/* <DownloadButton patcId={project.id} /> */}
                                   {/* Other buttons (edit, delete, etc.) */}
                                 </div>
                               </td>
@@ -500,13 +514,53 @@ const ProjectManagement = () => {
 
         {/* Danh sách công trình */}
         <div className='bg-white rounded-xl shadow-sm p-6'>
-          <h2 className='text-xl font-bold mb-4'>Danh sách công trình</h2>
-          {state.constructions.map(construction => (
-            <ConstructionRow
-              key={construction.id}
-              construction={construction}
-            />
-          ))}
+          <h1 className='text-2xl font-bold text-gray-800 mb-4'>
+            Danh sách công trình
+          </h1>
+
+          {/* Checkbox lọc trạng thái */}
+          <div className='mt-4 flex flex-wrap gap-4'>
+            {Object.entries(statusConfig).map(([key, { label, color }]) => (
+              <label
+                key={key}
+                className='inline-flex items-center space-x-2 cursor-pointer'
+              >
+                <input
+                  type='checkbox'
+                  value={key}
+                  checked={selectedStatus.includes(key)}
+                  onChange={e => {
+                    const value = e.target.value
+                    setSelectedStatus(prev =>
+                      prev.includes(value)
+                        ? prev.filter(status => status !== value)
+                        : [...prev, value],
+                    )
+                  }}
+                  className='form-checkbox h-4 w-4 text-blue-600 rounded focus:ring-blue-500'
+                />
+                <span className={`text-sm ${color} px-3 py-1 rounded-full`}>
+                  {label}
+                </span>
+              </label>
+            ))}
+          </div>
+
+          {/* Construction Rows */}
+          <div className='space-y-4'>
+            {filteredConstructions.length > 0 ? (
+              filteredConstructions.map(construction => (
+                <ConstructionRow
+                  key={construction.id}
+                  construction={construction}
+                />
+              ))
+            ) : (
+              <div className='text-center text-gray-500 italic'>
+                Không có công trình nào phù hợp với tiêu chí tìm kiếm.
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Modal và thông báo */}

@@ -6,6 +6,7 @@ import Skeleton from 'react-loading-skeleton'
 import 'react-loading-skeleton/dist/skeleton.css'
 import { useNavigate } from 'react-router-dom'
 import { get } from '../api/axiosClient'
+import DownloadButton from '../components/DownloadButton'
 
 const statusConfig = {
   0: { color: 'bg-gray-100 text-gray-800', label: 'Bảng nháp' },
@@ -25,6 +26,8 @@ const ProjectApprovalList = () => {
     searchTerm: '',
   })
 
+  const [selectedStatuses, setSelectedStatuses] = useState([])
+
   useEffect(() => {
     const fetchProjects = async () => {
       try {
@@ -37,12 +40,14 @@ const ProjectApprovalList = () => {
             construction.dsPhuongAnThiCong.map(project => ({
               ...project,
               constructionCode: construction.code,
+              fullName: construction.appUser?.fullName,
             })),
           )
           .sort((a, b) => new Date(b.createAt) - new Date(a.createAt))
         setState(prev => ({
           ...prev,
           projects,
+
           loading: false,
         }))
       } catch (error) {
@@ -57,11 +62,26 @@ const ProjectApprovalList = () => {
     fetchProjects()
   }, [])
 
-  const filteredProjects = state.projects.filter(
-    project =>
+  const handleStatusChange = status => {
+    setSelectedStatuses(prev => {
+      if (prev.includes(status)) {
+        return prev.filter(s => s !== status)
+      } else {
+        return [...prev, status]
+      }
+    })
+  }
+
+  const filteredProjects = state.projects.filter(project => {
+    const matchesSearch =
       project.code.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
-      project.name.toLowerCase().includes(state.searchTerm.toLowerCase()),
-  )
+      project.name.toLowerCase().includes(state.searchTerm.toLowerCase())
+
+    const matchesStatus =
+      selectedStatuses.length === 0 || selectedStatuses.includes(project.status)
+
+    return matchesSearch && matchesStatus
+  })
 
   return (
     <div className='min-h-screen bg-gray-50 p-6'>
@@ -80,6 +100,30 @@ const ProjectApprovalList = () => {
               }
               className='w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500'
             />
+          </div>
+          {/* Checkbox lọc trạng thái */}
+          <div className='mt-4 flex flex-wrap gap-4'>
+            {[1, 2, 3, 4, 5].map(status => {
+              const config = statusConfig[status]
+              return (
+                <label
+                  key={status}
+                  className='inline-flex items-center space-x-2 cursor-pointer'
+                >
+                  <input
+                    type='checkbox'
+                    checked={selectedStatuses.includes(status)}
+                    onChange={() => handleStatusChange(status)}
+                    className='form-checkbox h-4 w-4 text-blue-600 rounded focus:ring-blue-500'
+                  />
+                  <span
+                    className={`text-sm ${config.color} px-3 py-1 rounded-full`}
+                  >
+                    {config.label}
+                  </span>
+                </label>
+              )
+            })}
           </div>
         </div>
 
@@ -141,7 +185,7 @@ const ProjectApprovalList = () => {
                         <td className='px-6 py-4'>{project.code}</td>
                         <td className='px-6 py-4'>{project.name}</td>
                         <td className='px-6 py-4'>
-                          {project.congTrinh?.appUser?.fullName || 'N/A'}
+                          {project.fullName || 'N/A'}
                         </td>
                         <td className='px-6 py-4'>
                           {format(new Date(project.createAt), 'dd/MM/yyyy') ||
@@ -158,14 +202,22 @@ const ProjectApprovalList = () => {
                           </span>
                         </td>
                         <td className='px-6 py-4'>
-                          <button
-                            onClick={() =>
-                              navigate(`/projectapproval/${project.id}/details`)
-                            }
-                            className='text-blue-600 hover:text-blue-800'
-                          >
-                            <FaEye className='w-5 h-5' />
-                          </button>
+                          <div className='flex items-center gap-2'>
+                            <button
+                              onClick={() =>
+                                navigate(
+                                  `/projectapproval/${project.id}/details`,
+                                )
+                              }
+                              className='text-blue-600 hover:text-blue-800'
+                            >
+                              <FaEye className='w-5 h-5' />
+                            </button>
+                            <DownloadButton
+                              duongdan={`/phuonganthicong/export/${project.id}`}
+                            />
+                            {/* <DownloadButton patcId={project.id} /> */}
+                          </div>
                         </td>
                       </motion.tr>
                     ))}

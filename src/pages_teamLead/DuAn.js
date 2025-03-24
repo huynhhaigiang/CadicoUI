@@ -5,6 +5,7 @@ import {
   RiRulerLine,
   RiShoppingCartLine,
   RiStackLine,
+  RiTeamFill,
   RiTodoLine,
   RiUserStarLine,
 } from 'react-icons/ri'
@@ -44,6 +45,11 @@ const Projects = () => {
       text: 'Loại vật tư',
       to: 'supplies',
       icon: <RiShoppingCartLine className='text-lg' />,
+    },
+    {
+      text: 'Đội thi công',
+      to: 'executionteam',
+      icon: <RiTeamFill className='text-lg' />,
     },
     {
       text: 'Phương án thi công',

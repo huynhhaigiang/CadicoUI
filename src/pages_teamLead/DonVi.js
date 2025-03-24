@@ -28,9 +28,10 @@ const Unit = () => {
   const handleAdd = async () => {
     try {
       const newProject = { id: newProjectId, name: newProjectName }
-      await post('/DonViTinh', newProject)
+      var res = await post('/DonViTinh', newProject)
       fetchProjects()
       resetForm()
+      console.log(res)
 
       toast.success('Thêm đơn vị tính thành công')
     } catch (error) {

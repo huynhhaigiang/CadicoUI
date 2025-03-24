@@ -1,6 +1,6 @@
 import { jwtDecode } from 'jwt-decode'
 import React, { useEffect, useState } from 'react'
-import { FiChevronDown, FiMenu, FiUser } from 'react-icons/fi'
+import { FiCheck, FiChevronDown, FiMenu, FiUser } from 'react-icons/fi'
 import {
   RiDashboardLine,
   RiMessage2Line,
@@ -164,9 +164,19 @@ const Navigation = ({ onToggle }) => {
         to: '/notificationpage',
       },
       {
+        icon: <FiCheck />,
+        text: 'Quản lí đội thi công',
+        to: '/approveTeam',
+      },
+      {
         icon: <RiShoppingCart2Line />,
         text: 'Quản lí dự án',
         to: '/projectapprovalGD',
+      },
+      {
+        icon: <RiShoppingCart2Line />,
+        text: 'Cung ứng vật tư',
+        to: '/supplymanagementGD',
       },
       {
         icon: <RiUserAddLine />,
@@ -199,6 +209,52 @@ const Navigation = ({ onToggle }) => {
       },
     ],
     guest: [
+      {
+        icon: <RiMessage2Line />,
+        text: 'Đăng xuất',
+        onClick: handleLogout,
+      },
+    ],
+    'material-supply': [
+      {
+        icon: <RiNotification3Line />,
+        text: 'Thông báo',
+        to: '/notificationpage',
+      },
+      {
+        icon: <RiShoppingCart2Line />,
+        text: 'Cung ứng vật tư',
+        to: '/supplymanagementTP',
+      },
+      {
+        icon: <RiUserAddLine />,
+        text: 'Thông tin người dùng',
+        to: '/userprofile',
+      },
+      { icon: <RiSettings4Line />, text: 'Cài đặt', to: '/settings' },
+      {
+        icon: <RiMessage2Line />,
+        text: 'Đăng xuất',
+        onClick: handleLogout,
+      },
+    ],
+    'material-supply-employee': [
+      {
+        icon: <RiNotification3Line />,
+        text: 'Thông báo',
+        to: '/notificationpage',
+      },
+      {
+        icon: <RiShoppingCart2Line />,
+        text: 'Cung ứng vật tư',
+        to: '/supplymanagement',
+      },
+      {
+        icon: <RiUserAddLine />,
+        text: 'Thông tin người dùng',
+        to: '/userprofile',
+      },
+      { icon: <RiSettings4Line />, text: 'Cài đặt', to: '/settings' },
       {
         icon: <RiMessage2Line />,
         text: 'Đăng xuất',

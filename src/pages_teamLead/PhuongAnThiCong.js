@@ -19,7 +19,10 @@ const ProjectForm = ({ onCreate }) => {
     settlementDate: '',
     acceptanceDate: '',
     invoiceDate: '',
+    percent: '',
     note: '',
+    dateOfenTry: '',
+    costNote: '',
   })
 
   const [projects, setProjects] = useState([])
@@ -58,6 +61,18 @@ const ProjectForm = ({ onCreate }) => {
           ? selectedProject.chuDauTu.name
           : '',
     }))
+  }
+  const handleInput = e => {
+    let value = e.target.valueAsNumber || 0 // Lấy giá trị dạng số
+
+    // Giới hạn giá trị trong khoảng 0-100
+    if (value < 0) value = 0
+    if (value > 100) value = 100
+
+    setProjectData({
+      ...projectData,
+      [e.target.name]: value,
+    })
   }
 
   // Handle thay đổi input
@@ -121,7 +136,10 @@ const ProjectForm = ({ onCreate }) => {
       thoiGianNghiemThuChuDauTu: projectData.acceptanceDate || null,
       ngayXuatHoaDon: projectData.invoiceDate || null,
       ghiChu: projectData.note,
-      congTrinhId: selectedProject.id, // Sử dụng project.id làm constructionId
+      phanTramThauPhu: projectData.percent,
+      congTrinhId: selectedProject.id,
+      ngayTaoPhuongAn: projectData.dateOfenTry,
+      ghiChuChiPhiNhanCong: projectData.costNote,
     }
 
     try {
@@ -164,7 +182,10 @@ const ProjectForm = ({ onCreate }) => {
       settlementDate: '',
       acceptanceDate: '',
       invoiceDate: '',
+      percent: '',
       note: '',
+      dateOfenTry: '',
+      costNote: '',
     })
     setNotification(null)
   }
@@ -297,6 +318,22 @@ const ProjectForm = ({ onCreate }) => {
               placeholder='Nhập giá trị hợp đồng'
             />
           </div>
+
+          <div>
+            <label className='block text-sm font-medium text-gray-700'>
+              Ghi chú sau giá trị hợp đồng
+            </label>
+            <input
+              type='text'
+              name='note'
+              value={projectData.note}
+              onChange={handleInputChange}
+              className='mt-1 p-2 border w-full rounded-md'
+              required
+              placeholder='Nhập giá trị hợp đồng'
+            />
+          </div>
+
           <div>
             <label className='block text-sm font-medium text-gray-700'>
               Ngày hợp đồng
@@ -307,6 +344,32 @@ const ProjectForm = ({ onCreate }) => {
               value={projectData.contractDate}
               onChange={handleInputChange}
               className='mt-1 p-2 border w-full rounded-md'
+            />
+          </div>
+          <div>
+            <label className='block text-sm font-medium text-gray-700'>
+              Ngày tạo phương án
+            </label>
+            <input
+              type='date'
+              name='dateOfenTry'
+              value={projectData.dateOfenTry}
+              onChange={handleInputChange}
+              className='mt-1 p-2 border w-full rounded-md'
+            />
+          </div>
+          <div>
+            <label className='block text-sm font-medium text-gray-700'>
+              Phần trăm thầu phụ %
+            </label>
+            <input
+              type='number'
+              name='percent'
+              value={projectData.percent}
+              onChange={handleInput}
+              className='mt-1 p-2 border w-full rounded-md'
+              min='0'
+              max='100'
             />
           </div>
         </div>
@@ -393,11 +456,11 @@ const ProjectForm = ({ onCreate }) => {
           </div>
           <div>
             <label className='block text-sm font-medium text-gray-700'>
-              Ghi chú
+              Ghi chú chi phí nhân công
             </label>
             <textarea
-              name='note'
-              value={projectData.note}
+              name='costNote'
+              value={projectData.costNote}
               onChange={handleInputChange}
               className='mt-1 p-2 border w-full rounded-md'
               rows='4'

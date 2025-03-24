@@ -24,7 +24,9 @@ const Layout = () => {
         }`}
       >
         <main className='p-6 overflow-y-auto h-full'>
-          <div className='max-w-7xl mx-auto'>
+          <div className='w-full h-[calc(100vh-100px)] mx-auto'>
+            {' '}
+            {/* Độ cao tự động trừ header */}
             <Outlet />
           </div>
         </main>

@@ -13,12 +13,22 @@ import Projects from './pages_teamLead/DuAn'
 
 import { AuthProvider, useAuth } from './contexs/AuthContext'
 import ProjectDetailsGD from './pages_director/ChiTietDuAnGD'
+import SupplyDetailPageGD from './pages_director/ChiTietPhieuGD'
+import ApproveTeamComponentGD from './pages_director/DuyetDoi'
+import SupplyPageGD from './pages_director/PhieuCungUngGD'
+import SupplyManagementGD from './pages_director/QuanLiCungUngGD'
 import ProjectApprovalListGD from './pages_director/QuanLiDuAnGD'
 import ProgressReportPageTP from './pages_manager/BaoCaoTienDoTP'
 import ProjectDetails from './pages_manager/ChiTietDuAn'
 import TaskAssignmentPageTP from './pages_manager/PhanCongViecTP'
 import ProjectApprovalList from './pages_manager/QuanLiDuAnTP'
 import ProjectManagementStackTP from './pages_manager/QuanLiTienDoTP'
+import SupplyDetailPageTP from './pages_materialSupply/ChiTietPhieuTP'
+import SupplyPageTP from './pages_materialSupply/PhieuCungUngTP'
+import SupplyManagementTP from './pages_materialSupply/QuanLiCungUngTP'
+import SupplyDetailPage from './pages_materialSupplyEmployee/ChiTietPhieu'
+import SupplyPage from './pages_materialSupplyEmployee/PhieuCungUng'
+import SupplyManagement from './pages_materialSupplyEmployee/QuanLiCungUng'
 import ProgressReportPage from './pages_teamLead/BaoCaoTienDo'
 import OtherCostManagement from './pages_teamLead/ChiPhiKhac'
 import CostManagement from './pages_teamLead/ChiPhiThucHien'
@@ -27,6 +37,7 @@ import InvestorComponent from './pages_teamLead/ChuDauTu'
 import ConstructionComponent from './pages_teamLead/CongTrinh'
 import RecommendationPage from './pages_teamLead/DeXuat'
 import MaterialRequestForm from './pages_teamLead/Dexuatvattu'
+import ExecutionTeamComponent from './pages_teamLead/Doithicong'
 import Unit from './pages_teamLead/DonVi'
 import WorkItems from './pages_teamLead/HangMucCV'
 import TypeOfWork from './pages_teamLead/LoaiCV'
@@ -64,6 +75,10 @@ function App() {
               <Route path='unit' element={<Unit />} />
               <Route path='typeofwork' element={<TypeOfWork />} />
               <Route path='workitems' element={<WorkItems />} />
+              <Route
+                path='executionteam'
+                element={<ExecutionTeamComponent />}
+              />
               {/* Loại vật tư */}
               <Route path='supplies' element={<Supplies />} />
               <Route path='upload' element={<ProjectForm />} />
@@ -125,7 +140,8 @@ function App() {
               path='/progressreportpageTP/:congViecId'
               element={<ProgressReportPageTP />}
             />
-
+            {/*Chức năng trang GD*/}
+            <Route path='/approveTeam' element={<ApproveTeamComponentGD />} />
             <Route
               path='/projectapprovalGD'
               element={<ProjectApprovalListGD />}
@@ -133,6 +149,30 @@ function App() {
             <Route
               path='/projectapprovalGD/:projectId/details'
               element={<ProjectDetailsGD />}
+            />
+            <Route
+              path='/supplymanagementGD'
+              element={<SupplyManagementGD />}
+            />
+            <Route path='/phuong-anGD/:id' element={<SupplyPageGD />} />
+            <Route
+              path='/supply-detailGD/:id'
+              element={<SupplyDetailPageGD />}
+            />
+
+            {/*Chức năng nhân viên cung ứng vật tư */}
+            <Route path='/supplymanagement' element={<SupplyManagement />} />
+            <Route path='/phuong-an/:id' element={<SupplyPage />} />
+            <Route path='/supply-detail/:id' element={<SupplyDetailPage />} />
+            {/*Chức năng đội trưởng cung ứng vật tư */}
+            <Route
+              path='/supplymanagementTP'
+              element={<SupplyManagementTP />}
+            />
+            <Route path='/phuong-anTP/:id' element={<SupplyPageTP />} />
+            <Route
+              path='/supply-detailTP/:id'
+              element={<SupplyDetailPageTP />}
             />
           </Route>
         </Routes>

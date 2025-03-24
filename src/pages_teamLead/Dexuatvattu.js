@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
+import { toast } from 'react-toastify'
 import { del, get, post, put } from '../api/axiosClient'
 
 const MaterialRequestForm = () => {
@@ -20,6 +21,8 @@ const MaterialRequestForm = () => {
     ghiChu: '',
     isPhatSinh: false,
     loaiVatTuId: '',
+    donGia: '',
+    thanhTien: '',
     phuongAnThiCongId: phuongAnThiCongId,
   })
 
@@ -61,7 +64,7 @@ const MaterialRequestForm = () => {
   }
 
   const handleInputChange = async e => {
-    console.log(klLuyKe)
+    //console.log(klLuyKe)
 
     const { name, type, value, checked } = e.target
 
@@ -95,6 +98,18 @@ const MaterialRequestForm = () => {
         setKlDeNghiConLai(newMaterial.klThietKe - value - klLuyKe)
       }
     }
+    if (name === 'donGia' || name === 'klDeNghi') {
+      const donGia =
+        parseFloat(e.target.name === 'donGia' ? value : newMaterial.donGia) || 0
+      const klDeNghi =
+        parseFloat(
+          e.target.name === 'klDeNghi' ? value : newMaterial.klDeNghi,
+        ) || 0
+      setNewMaterial(prev => ({
+        ...prev,
+        thanhTien: donGia * klDeNghi,
+      }))
+    }
 
     setNewMaterial(prev => ({
       ...prev,
@@ -121,11 +136,16 @@ const MaterialRequestForm = () => {
         ...newMaterial,
         klThietKe: Number(newMaterial.klThietKe),
         klDeNghi: Number(newMaterial.klDeNghi),
+        donGia: Number(newMaterial.donGia),
+        thanhTien: Number(newMaterial.thanhTien),
       })
       await fetchMaterials()
       resetForm()
+      toast.success('Thêm vật tư thành công')
     } catch (error) {
-      handleError(error, 'Lỗi khi thêm vật tư')
+      //handleError(error, 'Lỗi khi thêm vật tư')
+      //console.log(error)
+      toast.error('Lỗi thêm vật tư')
     }
   }
 
@@ -136,13 +156,17 @@ const MaterialRequestForm = () => {
         ...newMaterial,
         klThietKe: Number(newMaterial.klThietKe),
         klDeNghi: Number(newMaterial.klDeNghi),
+        donGia: Number(newMaterial.donGia),
+        thanhTien: Number(newMaterial.thanhTien),
       })
       setMaterials(prev =>
         prev.map(item => (item.id === newMaterial.id ? newMaterial : item)),
       )
       resetForm()
+      toast.success('Chỉnh sửa vật tư thành công')
     } catch (error) {
-      handleError(error, 'Lỗi khi cập nhật vật tư')
+      //handleError(error, 'Lỗi khi cập nhật vật tư')
+      toast.error('Lỗi chỉnh sửa vật tư')
     }
   }
 
@@ -152,8 +176,10 @@ const MaterialRequestForm = () => {
       await del(`/DeXuatVatTu/${newMaterial.id}`)
       setMaterials(prev => prev.filter(item => item.id !== newMaterial.id))
       resetForm()
+      toast.success('Xóa vật tư thành công')
     } catch (error) {
-      handleError(error, 'Lỗi khi xóa vật tư')
+      //handleError(error, 'Lỗi khi xóa vật tư')
+      toast.error('Lỗi xóa vật tư')
     }
   }
 
@@ -164,14 +190,31 @@ const MaterialRequestForm = () => {
       ghiChu: '',
       isPhatSinh: false,
       loaiVatTuId: '',
+      donGia: '',
+      thanhTien: '',
       phuongAnThiCongId: phuongAnThiCongId,
     })
     setSelectedMaterialIndex(null)
   }
 
   const handleRowClick = index => {
+    const selectedMaterial = materials[index]
     setSelectedMaterialIndex(index)
-    setNewMaterial(materials[index])
+    setNewMaterial({
+      ...selectedMaterial,
+      loaiVatTuId: selectedMaterial.loaiVatTu?.id,
+    })
+
+    // Cập nhật các state phụ thuộc
+    if (selectedMaterial.loaiVatTu) {
+      setSelectedLoaiVatTu(selectedMaterial.loaiVatTu)
+      setKlLuyKe(selectedMaterial.klLuyKe)
+      setKlDeNghiConLai(
+        selectedMaterial.klThietKe -
+          selectedMaterial.klDeNghi -
+          selectedMaterial.klLuyKe,
+      )
+    }
   }
 
   const formatNumber = num =>
@@ -285,7 +328,7 @@ const MaterialRequestForm = () => {
               className='w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-300 focus:border-blue-500 transition-all'
               placeholder='Nhập khối lượng...'
               min='0'
-              step='0.01'
+              step='0.0001'
             />
           </div>
 
@@ -301,11 +344,40 @@ const MaterialRequestForm = () => {
               className='w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-300 focus:border-blue-500 transition-all'
               placeholder='Nhập khối lượng...'
               min='0'
-              step='0.01'
+              step='0.0001'
             />
             <span className='text-blue-500'>
               Khối lượng đề nghị còn lại: {klDeNghiConLai}
             </span>
+          </div>
+
+          <div className='space-y-1'>
+            <label className='block text-sm font-medium text-gray-600'>
+              Đơn giá <span className='text-red-500'>*</span>
+            </label>
+            <input
+              type='number'
+              name='donGia'
+              value={newMaterial.donGia}
+              onChange={handleInputChange}
+              className='w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-300 focus:border-blue-500 transition-all'
+              placeholder='Nhập đơn giá...'
+              min='0'
+            />
+          </div>
+
+          <div className='space-y-1'>
+            <label className='block text-sm font-medium text-gray-600'>
+              Thành tiền
+            </label>
+            <input
+              type='number'
+              name='thanhTien'
+              value={newMaterial.thanhTien}
+              onChange={handleInputChange}
+              className='w-full px-4 py-2.5 rounded-lg border border-gray-200'
+              placeholder='Nhập thành tiền...'
+            />
           </div>
 
           <div className='md:col-span-2 space-y-1'>
@@ -416,6 +488,12 @@ const MaterialRequestForm = () => {
                   Phát sinh
                 </th>
                 <th className='px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase'>
+                  Đơn giá
+                </th>
+                <th className='px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase'>
+                  Thành tiền
+                </th>
+                <th className='px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase'>
                   Ghi chú
                 </th>
               </tr>
@@ -452,6 +530,12 @@ const MaterialRequestForm = () => {
                   </td>
                   <td className='px-4 py-3 text-sm text-gray-600'>
                     {material.isPhatSinh ? 'Có' : 'Không'}
+                  </td>
+                  <td className='px-4 py-3 text-sm text-gray-800 font-medium'>
+                    {formatNumber(material.donGia)}
+                  </td>
+                  <td className='px-4 py-3 text-sm text-gray-800 font-medium'>
+                    {formatNumber(material.thanhTien)}
                   </td>
                   <td className='px-4 py-3 text-sm text-gray-600'>
                     {material.ghiChu || '-'}

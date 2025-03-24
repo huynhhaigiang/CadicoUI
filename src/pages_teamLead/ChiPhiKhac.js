@@ -190,7 +190,8 @@ const OtherCostManagement = () => {
                   <option value=''>Chọn Đội thi công...</option>
                   {teamsList.map(team => (
                     <option key={team.id} value={team.id}>
-                      {team.name}
+                      {team.appUser.fullName +
+                        (team.description ? ' - ' + team.description : '')}
                     </option>
                   ))}
                 </select>
@@ -365,7 +366,7 @@ const OtherCostManagement = () => {
                 <td className='py-2 px-4 border-b text-center'>{index + 1}</td>
                 <td className='py-2 px-4 border-b'>{item.noiDungCongViec}</td>
                 <td className='py-2 px-4 border-b'>
-                  {item.doiThiCong?.name || '-'}
+                  {item.doiThiCong?.appUser?.fullName || '-'}
                 </td>
                 <td className='py-2 px-4 border-b'>{item.dvt?.name || '-'}</td>
                 <td className='py-2 px-4 border-b text-right'>

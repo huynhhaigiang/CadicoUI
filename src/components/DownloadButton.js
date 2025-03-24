@@ -4,14 +4,15 @@ import { toast } from 'react-toastify'
 import { Tooltip } from 'react-tooltip'
 import { downloadFile } from '../api/axiosClient'
 
-const DownloadButton = ({ patcId }) => {
+const DownloadButton = ({ duongdan }) => {
   const [isLoading, setIsLoading] = useState(false)
 
   const handleDownload = async () => {
     try {
       setIsLoading(true)
 
-      const response = await downloadFile(`/phuonganthicong/export/${patcId}`)
+      const response = await downloadFile(duongdan)
+      // const response = await downloadFile(`/phuonganthicong/export/${patcId}`)
       if (!response || !response.data) {
         toast.error('Không có dữ liệu')
         return
@@ -43,6 +44,7 @@ const DownloadButton = ({ patcId }) => {
     } catch (error) {
       console.log(error)
 
+      //console.log(error.response?.data?.detail || 'lỗi tải file')
       toast.error('Lỗi tải file!')
     } finally {
       setIsLoading(false)

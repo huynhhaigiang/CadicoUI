@@ -1,6 +1,6 @@
 import { format } from 'date-fns'
 import { useCallback, useEffect, useState } from 'react'
-import { FaArrowLeft } from 'react-icons/fa'
+import { FaArrowLeft, FaExclamationCircle } from 'react-icons/fa'
 import Skeleton from 'react-loading-skeleton'
 import 'react-loading-skeleton/dist/skeleton.css'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -37,22 +37,17 @@ const ProjectDetailsPage = () => {
     }).format(value)
 
   const formatDate = dateString =>
-    dateString ? format(new Date(dateString), 'dd/MM/yyyy') : 'N/A'
+    dateString ? format(new Date(dateString), 'dd/MM/yyyy') : ''
 
-  const renderLoadingSkeleton = (rows = 5) =>
-    Array(rows)
-      .fill()
-      .map((_, i) => (
-        <tr key={i}>
-          {Array(4)
-            .fill()
-            .map((_, j) => (
-              <td key={j} className='px-6 py-4'>
-                <Skeleton height={20} />
-              </td>
-            ))}
-        </tr>
-      ))
+  const renderLoadingSkeleton = (rows = 5) => (
+    <div className='space-y-4'>
+      {Array(rows)
+        .fill()
+        .map((_, i) => (
+          <Skeleton key={i} height={40} enableAnimation />
+        ))}
+    </div>
+  )
 
   const fetchData = useCallback(
     async (endpoint, key) => {
@@ -65,6 +60,11 @@ const ProjectDetailsPage = () => {
     },
     [projectId],
   )
+
+  const teamsWithIndex = data.teams.map((team, index) => ({
+    ...team,
+    soThuTu: index + 1,
+  }))
 
   useEffect(() => {
     const loadData = async () => {
@@ -100,18 +100,19 @@ const ProjectDetailsPage = () => {
     loadData()
   }, [fetchData])
 
-  // Tab content components
   const GeneralTab = () => {
     const FIELDS = [
       {
         key: 'congTrinhCode',
         label: 'Mã công trình',
-        formatter: (_, generalData) => generalData?.congTrinh?.code || 'N/A',
+        formatter: (_, generalData) =>
+          generalData?.congTrinh?.code || 'Chưa có',
       },
       {
         key: 'congTrinhName',
         label: 'Tên công trình',
-        formatter: (_, generalData) => generalData?.congTrinh?.name || 'N/A',
+        formatter: (_, generalData) =>
+          generalData?.congTrinh?.name || 'Chưa có',
       },
       { key: 'code', label: 'Mã phương án' },
       { key: 'name', label: 'Tên phương án' },
@@ -125,26 +126,28 @@ const ProjectDetailsPage = () => {
         label: 'Thời gian thi công',
         formatter: value => `${value} ngày`,
       },
-
       { key: 'ghiChu', label: 'Ghi chú' },
       { key: 'liDoTuChoi', label: 'Lí Do Từ Chối' },
     ]
 
     return (
-      <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
         {FIELDS.map(({ key, label, formatter }) => {
           const value = formatter
             ? formatter(data.general?.[key], data.general)
             : data.general?.[key]
 
           return (
-            <div key={key} className='space-y-1'>
-              <label className='text-sm font-medium text-gray-700'>
+            <div
+              key={key}
+              className='bg-gray-50 rounded-lg p-4 border border-gray-100 transition-colors hover:border-blue-100'
+            >
+              <dt className='text-sm font-medium text-gray-500 mb-1'>
                 {label}
-              </label>
-              <div className='p-3 bg-gray-50 rounded-md border border-gray-200'>
-                {value ?? 'N/A'}
-              </div>
+              </dt>
+              <dd className='font-medium text-gray-900'>
+                {value || <span className='text-gray-400'>Chưa có</span>}
+              </dd>
             </div>
           )
         })}
@@ -152,34 +155,63 @@ const ProjectDetailsPage = () => {
     )
   }
 
-  const DataTable = ({ columns, data, loading }) => {
-    // Hàm xử lý nested accessor
+  const DataTable = ({ columns, data, loading, totalKey }) => {
     const getNestedValue = (obj, path) => {
       return path.split('.').reduce((acc, part) => acc?.[part], obj)
     }
 
+    const calculateTotal = () => {
+      return data.reduce((total, row) => {
+        const value = getNestedValue(row, totalKey)
+        // Kiểm tra kiểu dữ liệu và chuyển đổi nếu cần
+        return (
+          total + (typeof value === 'number' ? value : parseFloat(value) || 0)
+        )
+      }, 0)
+    }
+
     return (
-      <div className='overflow-x-auto rounded-lg border border-gray-200'>
-        <table className='w-full'>
-          <thead className='bg-gray-50'>
-            <tr>
-              {columns.map(({ header, className }) => (
-                <th
-                  key={header}
-                  className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase ${className}`}
-                >
-                  {header}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className='divide-y divide-gray-200'>
-            {loading
-              ? renderLoadingSkeleton()
-              : data.map((row, index) => (
-                  <tr key={index}>
+      <div className='rounded-xl border border-gray-100 overflow-hidden shadow-xs'>
+        <div className='overflow-x-auto'>
+          <table className='w-full divide-y divide-gray-200'>
+            <thead className='bg-blue-50'>
+              <tr>
+                {columns.map(({ header, className }) => (
+                  <th
+                    key={header}
+                    className={`px-5 py-3.5 text-left text-sm font-semibold text-blue-700 ${className}`}
+                  >
+                    {header}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className='divide-y divide-gray-200 bg-white'>
+              {loading ? (
+                <tr>
+                  <td colSpan={columns.length} className='px-5 py-4'>
+                    {renderLoadingSkeleton()}
+                  </td>
+                </tr>
+              ) : data.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={columns.length}
+                    className='px-5 py-6 text-center'
+                  >
+                    <div className='text-gray-500 flex items-center justify-center'>
+                      <FaExclamationCircle className='mr-2' />
+                      Không có dữ liệu
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                data.map((row, index) => (
+                  <tr
+                    key={index}
+                    className='hover:bg-gray-50 transition-colors'
+                  >
                     {columns.map(({ accessor, className, formatter }) => {
-                      // Xử lý nested accessor
                       const value =
                         typeof accessor === 'function'
                           ? accessor(row)
@@ -188,60 +220,88 @@ const ProjectDetailsPage = () => {
                       return (
                         <td
                           key={accessor}
-                          className={`px-6 py-4 whitespace-nowrap ${className}`}
+                          className={`px-5 py-3.5 text-sm text-gray-700 ${className}`}
                         >
-                          {formatter ? formatter(value, row) : value ?? 'N/A'}
+                          {formatter ? formatter(value, row) : value || ''}
                         </td>
                       )
                     })}
                   </tr>
-                ))}
-          </tbody>
-        </table>
+                ))
+              )}
+            </tbody>
+            {totalKey && (
+              <tfoot>
+                <tr>
+                  <td
+                    colSpan={columns.length - 1}
+                    className='px-5 py-3.5 text-right font-semibold'
+                  >
+                    Tổng tiền:
+                  </td>
+                  <td className='px-5 py-3.5 font-semibold'>
+                    {formatCurrency(calculateTotal())}
+                  </td>
+                </tr>
+              </tfoot>
+            )}
+          </table>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className='min-h-screen bg-gray-50 p-4 sm:p-6'>
+    <div className='min-h-screen bg-gray-50 p-6'>
       <div className='max-w-7xl mx-auto space-y-6'>
-        {/* Header */}
-        <div className='bg-white rounded-xl shadow-sm p-4 sm:p-6'>
-          <div className='flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4'>
+        <div className='bg-white rounded-xl shadow-sm p-6 border border-gray-100'>
+          <div className='flex flex-col space-y-4'>
             <button
               onClick={() => navigate(-1)}
-              className='flex items-center text-gray-600 hover:text-gray-800 transition-colors'
+              className='flex items-center text-gray-600 hover:text-blue-600 transition-colors group'
             >
-              <FaArrowLeft className='mr-2' />
-              <span className='hidden sm:inline'>Quay lại</span>
+              <FaArrowLeft className='mr-2 transition-transform group-hover:-translate-x-1' />
+              <span className='text-sm font-medium'>Quay lại</span>
             </button>
 
-            <h1 className='text-xl font-semibold text-gray-800 text-center'>
-              {data.general?.name || 'Chi tiết dự án'}
-            </h1>
+            <div className='border-b border-gray-200 pb-4'>
+              <h1 className='text-2xl font-bold text-gray-900'>
+                {data.general?.name || 'Chi tiết dự án'}
+              </h1>
+              {data.general?.code && (
+                <p className='text-sm text-gray-500 mt-1'>
+                  Mã phương án: {data.general.code}
+                </p>
+              )}
+            </div>
 
-            <div className='flex flex-wrap gap-2'>
+            <nav className='flex space-x-4 overflow-x-auto pb-2'>
               {Object.entries(TAB_CONFIG).map(([key, { label }]) => (
                 <button
                   key={key}
                   onClick={() => setActiveTab(key)}
-                  className={`px-3 py-1.5 rounded-md text-sm transition-colors ${
+                  className={`px-3 py-2 text-sm font-medium relative transition-colors ${
                     activeTab === key
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      ? 'text-blue-600'
+                      : 'text-gray-500 hover:text-gray-700'
                   }`}
                 >
                   {label}
+                  {activeTab === key && (
+                    <span className='absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-full' />
+                  )}
                 </button>
               ))}
-            </div>
+            </nav>
           </div>
         </div>
 
-        {/* Content */}
-        <div className='bg-white rounded-xl shadow-sm p-4 sm:p-6'>
+        <div className='bg-white rounded-xl shadow-sm p-6 border border-gray-100'>
           {error ? (
-            <div className='text-center py-8 text-red-600'>{error}</div>
+            <div className='p-6 bg-red-50 rounded-lg text-red-700 flex items-center'>
+              <FaExclamationCircle className='mr-3 flex-shrink-0' />
+              {error}
+            </div>
           ) : (
             <>
               {activeTab === 'general' && <GeneralTab />}
@@ -249,7 +309,7 @@ const ProjectDetailsPage = () => {
               {activeTab === 'teams' && (
                 <DataTable
                   columns={[
-                    { header: 'Tên đội', accessor: 'name' },
+                    { header: 'STT', accessor: 'soThuTu', className: 'w-20' },
                     {
                       header: 'Người phụ trách',
                       accessor: 'appUser.fullName',
@@ -259,21 +319,18 @@ const ProjectDetailsPage = () => {
                       header: 'Chức vụ',
                       accessor: 'loaiDoiThiCong',
                       formatter: value => {
-                        switch (value) {
-                          case 0:
-                            return 'Đội trưởng'
-                          case 1:
-                            return 'Đơn vị thi công'
-                          case 2:
-                            return 'Thầu phụ'
-                          default:
-                            return 'Khác'
+                        const types = {
+                          0: 'Đội trưởng',
+                          1: 'Đội thi công (I)',
+                          2: 'Đội thi công (O)',
+                          3: 'Thầu phụ',
                         }
+                        return types[value] || 'Khác'
                       },
                     },
                     { header: 'Ghi chú', accessor: 'description' },
                   ]}
-                  data={data.teams}
+                  data={teamsWithIndex}
                   loading={loading}
                 />
               )}
@@ -281,8 +338,8 @@ const ProjectDetailsPage = () => {
               {activeTab === 'workloads' && (
                 <DataTable
                   columns={[
-                    { header: 'Công việc', accessor: 'name' },
-                    { header: 'Khối lượng', accessor: 'khoiLuong' },
+                    { header: 'Khối lượng công việc', accessor: 'name' },
+                    { header: 'Số lượng', accessor: 'khoiLuong' },
                     { header: 'ĐVT', accessor: 'dvt' },
                   ]}
                   data={data.workloads}
@@ -293,13 +350,20 @@ const ProjectDetailsPage = () => {
               {activeTab === 'costs' && (
                 <DataTable
                   columns={[
-                    { header: 'Loại CV', accessor: 'loaiCongViec.name' },
-                    { header: 'Hạn mục CV', accessor: 'hangMucCongViec.name' },
+                    { header: 'Loại công việc', accessor: 'loaiCongViec.name' },
+                    {
+                      header: 'Người phụ trách',
+                      accessor: 'doiThiCong.appUser.fullName',
+                    },
+                    {
+                      header: 'Hạn mục công việc',
+                      accessor: 'hangMucCongViec.name',
+                    },
                     {
                       header: 'Nội dung công việc',
                       accessor: 'noiDungCongViec',
                     },
-                    { header: 'DVT', accessor: 'dvt.name' },
+                    { header: 'ĐVT', accessor: 'dvt.name' },
                     { header: 'Khối lượng', accessor: 'khoiLuong' },
                     {
                       header: 'Đơn giá',
@@ -315,13 +379,21 @@ const ProjectDetailsPage = () => {
                   ]}
                   data={data.costs}
                   loading={loading}
+                  totalKey='thanhTien' // Thêm key để tính tổng
                 />
               )}
 
               {activeTab === 'otherCosts' && (
                 <DataTable
                   columns={[
-                    { header: 'Nội dung', accessor: 'noiDungCongViec' },
+                    {
+                      header: 'Nội dung công việc',
+                      accessor: 'noiDungCongViec',
+                    },
+                    {
+                      header: 'Người phụ trách',
+                      accessor: 'doiThiCong.appUser.fullName',
+                    },
                     { header: 'Khối lượng', accessor: 'khoiLuong' },
                     {
                       header: 'Đơn giá',
@@ -337,6 +409,7 @@ const ProjectDetailsPage = () => {
                   ]}
                   data={data.otherCosts}
                   loading={loading}
+                  totalKey='thanhTien' // Thêm key để tính tổng
                 />
               )}
 
@@ -345,15 +418,29 @@ const ProjectDetailsPage = () => {
                   columns={[
                     { header: 'Tên vật tư', accessor: 'loaiVatTu.name' },
                     { header: 'Quy cách', accessor: 'loaiVatTu.quyCach' },
-                    { header: 'ĐVT', accessor: 'dvt.name' },
+                    { header: 'ĐVT', accessor: 'loaiVatTu.dvt.name' },
                     { header: 'KL Thiết kế', accessor: 'klThietKe' },
-                    { header: 'KL Đề Nghị', accessor: 'klDeNghi' },
-                    { header: 'KL Lũy Kế', accessor: 'klLuyKe' },
-                    { header: 'Phát sinh', accessor: 'isPhatSinh' },
+                    { header: 'KL đề nghị', accessor: 'klDeNghi' },
+                    { header: 'KL lũy kế', accessor: 'klLuyKe' },
+                    {
+                      header: 'Phát sinh',
+                      accessor: row => (row.isPhatSinh ? 'Có' : 'Không'),
+                    },
+                    {
+                      header: 'Đơn giá',
+                      accessor: 'donGia',
+                      formatter: formatCurrency,
+                    },
+                    {
+                      header: 'Thành tiền',
+                      accessor: 'thanhTien',
+                      formatter: formatCurrency,
+                    },
                     { header: 'Ghi chú', accessor: 'ghiChu' },
                   ]}
                   data={data.materials}
                   loading={loading}
+                  totalKey='thanhTien' // Thêm key để tính tổng
                 />
               )}
             </>
