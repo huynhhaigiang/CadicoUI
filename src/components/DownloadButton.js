@@ -12,7 +12,7 @@ const DownloadButton = ({ duongdan }) => {
       setIsLoading(true)
 
       const response = await downloadFile(duongdan)
-      // const response = await downloadFile(`/phuonganthicong/export/${patcId}`)
+      // const response = await downloadFile(`/phuonganthicong/export/${patcId}/`)
       if (!response || !response.data) {
         toast.error('Không có dữ liệu')
         return

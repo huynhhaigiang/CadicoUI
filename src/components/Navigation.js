@@ -261,6 +261,29 @@ const Navigation = ({ onToggle }) => {
         onClick: handleLogout,
       },
     ],
+    'progress-tracker': [
+      {
+        icon: <RiNotification3Line />,
+        text: 'Thông báo',
+        to: '/notificationpage',
+      },
+      {
+        icon: <RiShoppingCart2Line />,
+        text: 'Quản lí dự án',
+        to: '/projectapprovalTP',
+      },
+      {
+        icon: <RiUserAddLine />,
+        text: 'Thông tin người dùng',
+        to: '/userprofile',
+      },
+      { icon: <RiSettings4Line />, text: 'Cài đặt', to: '/settings' },
+      {
+        icon: <RiMessage2Line />,
+        text: 'Đăng xuất',
+        onClick: handleLogout,
+      },
+    ],
   }
 
   const NavItem = ({ icon, text, to, children, isExpandable, onClick }) => {

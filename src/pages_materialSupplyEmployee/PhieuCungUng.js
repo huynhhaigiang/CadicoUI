@@ -73,16 +73,19 @@ const SupplyPage = () => {
   }
 
   const handleSubmitApproval = async () => {
+    console.log(selectedApproverId)
+    console.log(selectedSupplyId)
     try {
       await put('/PhieuCungUngVatTu/submit', {
         phieuCungUngId: selectedSupplyId,
         truongPhongCungUngId: selectedApproverId,
       })
-      toast.success(' Gửi phê duyệt thành công')
+      toast.success('Gửi phê duyệt thành công')
       setShowSubmitModal(false)
-      fetchSupplies() // Refresh danh sách
+      fetchSupplies()
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Lỗi gửi phê duyệt')
+      const errorMessage = error.response?.data?.detail || 'Lỗi gửi phê duyệt'
+      toast.error(errorMessage)
     }
   }
 
@@ -90,7 +93,6 @@ const SupplyPage = () => {
     try {
       const response = await get('AppUser/material-supply')
       setApprovers(response.data)
-      console.log(response.data)
     } catch (error) {
       toast.error('Lỗi tải danh sách người phê duyệt')
     }
@@ -450,10 +452,14 @@ const SupplyPage = () => {
               Chọn người phê duyệt
             </h2>
             <select
-              value={selectedApproverId || ''}
-              onChange={e => setSelectedApproverId(e.target.value)}
+              value={selectedApproverId ?? ''}
+              onChange={e => setSelectedApproverId(Number(e.target.value))} // Chuyển đổi sang số nếu cần
               className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-4'
             >
+              <option value='' disabled>
+                -- Chọn người phê duyệt --
+              </option>{' '}
+              {/* Thêm option mặc định */}
               {approvers.map(approver => (
                 <option key={approver.id} value={approver.id}>
                   {approver.fullName}

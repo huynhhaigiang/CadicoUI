@@ -23,6 +23,7 @@ const ProjectForm = ({ onCreate }) => {
     note: '',
     dateOfenTry: '',
     costNote: '',
+    ghiChuSauTienDoThiCong: '',
   })
 
   const [projects, setProjects] = useState([])
@@ -140,6 +141,7 @@ const ProjectForm = ({ onCreate }) => {
       congTrinhId: selectedProject.id,
       ngayTaoPhuongAn: projectData.dateOfenTry,
       ghiChuChiPhiNhanCong: projectData.costNote,
+      ghiChuSauTienDoThiCong: projectData.ghiChuSauTienDoThiCong,
     }
 
     try {
@@ -186,6 +188,7 @@ const ProjectForm = ({ onCreate }) => {
       note: '',
       dateOfenTry: '',
       costNote: '',
+      ghiChuSauTienDoThiCong: '',
     })
     setNotification(null)
   }
@@ -374,7 +377,19 @@ const ProjectForm = ({ onCreate }) => {
           </div>
         </div>
 
-        <h2 className='text-lg font-semibold mt-6'>Tiến độ dự án</h2>
+        <h2 className='text-lg font-semibold mt-6'>Tiến độ thi công</h2>
+        <div>
+          <label className='block text-sm font-medium text-gray-700'>
+            Ghi chú sau tiến độ thi công
+          </label>
+          <textarea
+            name='ghiChuSauTienDoThiCong'
+            value={projectData.ghiChuSauTienDoThiCong}
+            onChange={handleInputChange}
+            className='mt-1 p-2 border w-full rounded-md'
+            rows='1'
+          />
+        </div>
         <div className='grid grid-cols-1 sm:grid-cols-3 gap-6'>
           <div>
             <label className='block text-sm font-medium text-gray-700'>

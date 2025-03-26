@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import React, { useEffect, useState } from 'react'
 import {
   FaChevronDown,
+  FaDownload,
   FaEdit,
   FaExclamationTriangle,
   FaEye,
@@ -19,8 +20,8 @@ import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { Tooltip } from 'react-tooltip'
 import { del, get, put } from '../api/axiosClient'
-import DownloadButton from '../components/DownloadButton'
 
+import DownloadButton from '../components/DownloadButton'
 const statusConfig = {
   0: { color: 'bg-gray-100 text-gray-800', label: 'Bản nháp' },
   1: { color: 'bg-amber-100 text-amber-800', label: 'Chờ TP duyệt' },
@@ -32,6 +33,9 @@ const statusConfig = {
 
 const ProjectManagement = () => {
   const navigate = useNavigate()
+  const [downloadModalOpen, setDownloadModalOpen] = useState(false)
+  const [selectedProjectForDownload, setSelectedProjectForDownload] =
+    useState(null)
   const [state, setState] = useState({
     constructions: [],
     projects: [],
@@ -58,9 +62,15 @@ const ProjectManagement = () => {
     { key: 'name', label: 'Tên dự án', type: 'text' },
     { key: 'soHDKT', label: 'Số hợp đồng', type: 'text' },
     { key: 'giaTriHD', label: 'Giá trị hợp đồng', type: 'number' },
+    { key: 'ghiChu', label: 'Ghi chú sau giá trị hợp đồng', type: 'textarea' },
     { key: 'ngayHopDong', label: 'Ngày hợp đồng', type: 'date' },
     { key: 'batDauThiCong', label: 'Ngày bắt đầu', type: 'date' },
     { key: 'ketThucThiCong', label: 'Ngày kết thúc', type: 'date' },
+    {
+      key: 'ghiChuSauTienDoThiCong',
+      label: 'Ghi chú sau tiến độ thi công',
+      type: 'textarea',
+    },
     {
       key: 'thoiGianThiCongTheoHopDong',
       label: 'Thời gian thi công (ngày)',
@@ -73,7 +83,11 @@ const ProjectManagement = () => {
       type: 'date',
     },
     { key: 'ngayXuatHoaDon', label: 'Ngày xuất hóa đơn', type: 'date' },
-    { key: 'ghiChu', label: 'Ghi chú', type: 'textarea' },
+    {
+      key: 'ghiChuChiPhiNhanCong',
+      label: 'Ghi chú chi phí nhân công',
+      type: 'textarea',
+    },
   ]
 
   useEffect(() => {
@@ -215,7 +229,8 @@ const ProjectManagement = () => {
         phuongAnThiCongId: state.selectedProjectId,
         truongPhongId: state.selectedManagerId,
       })
-      handleSuccess('✅ Gửi phê duyệt thành công!')
+      toast.success('Gửi phương án thành công ')
+      //handleSuccess('✅ Gửi phê duyệt thành công!')
       setState(prev => ({
         ...prev,
         showSubmitModal: false,
@@ -227,11 +242,12 @@ const ProjectManagement = () => {
         await fetchProjects(state.selectedConstruction.id)
       }
     } catch (error) {
-      handleError(
-        `❌ Lỗi gửi phê duyệt: ${
-          error.response?.data?.message || 'Vui lòng thử lại'
-        }`,
-      )
+      toast.error(error.response?.data?.detail || 'Lỗi gửi phương án ')
+      // handleError(
+      //   `❌ Lỗi gửi phê duyệt: ${
+      //     error.response?.data?.message || 'Vui lòng thử lại'
+      //   }`,
+      // )
     }
   }
 
@@ -474,20 +490,34 @@ const ProjectManagement = () => {
                                   />
                                 </div>
                               </td>
+                              {/* <td className='px-1 py-1'>
+                                <div className='flex space-x-2 text-yellow-600'>                             
+                                  <DownloadButton
+                                    duongdan={`/phuonganthicong/export?patcId=${project.id}&companyName=CTYCADICO`}
+                                  />
+                                </div>
+                              </td>
                               <td className='px-6 py-4'>
                                 <div className='flex space-x-4 text-gray-600'>
-                                  {/* <button
-                                    onClick={()=> handleDownload(project.id)}
-                                    className="hover:text-green-600 transition-colors"
-                                    aria-label="In"
-                                  >
-                                    <FaPrint className="w-5 h-5" />
-                                  </button> */}
+             
                                   <DownloadButton
-                                    duongdan={`/phuonganthicong/export/${project.id}`}
+                                    duongdan={`/phuonganthicong/export?patcId=${project.id}&companyName=CTYHHD`}
                                   />
-                                  {/* <DownloadButton patcId={project.id} /> */}
-                                  {/* Other buttons (edit, delete, etc.) */}
+                               
+                                </div>
+                              </td> */}
+                              <td className='px-1 py-1'>
+                                <div className='flex space-x-2 text-yellow-600'>
+                                  <button
+                                    onClick={() => {
+                                      setSelectedProjectForDownload(project)
+                                      setDownloadModalOpen(true)
+                                    }}
+                                    className='hover:text-blue-600 transition-colors'
+                                    aria-label='Tải xuống'
+                                  >
+                                    <FaDownload className='w-5 h-5' />
+                                  </button>
                                 </div>
                               </td>
                             </motion.tr>
@@ -813,6 +843,89 @@ const ProjectManagement = () => {
             >
               <FiCheck className='flex-shrink-0' />
               <span>{state.successMessage}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {downloadModalOpen && selectedProjectForDownload && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className='fixed inset-0 bg-black/30 backdrop-blur-md z-50 flex items-center justify-center p-4'
+            >
+              <motion.div
+                initial={{ scale: 0.95, y: 20 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                className='bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-8 max-w-lg w-full border border-gray-100 relative'
+              >
+                {/* Nút đóng */}
+                <button
+                  onClick={() => {
+                    setDownloadModalOpen(false)
+                    setSelectedProjectForDownload(null)
+                  }}
+                  className='absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full transition-colors'
+                >
+                  <svg
+                    xmlns='http://www.w3.org/2000/svg'
+                    className='h-6 w-6 text-gray-600' // Tăng kích thước icon đóng
+                    fill='none'
+                    viewBox='0 0 24 24'
+                    stroke='currentColor'
+                  >
+                    <path
+                      strokeLinecap='round'
+                      strokeLinejoin='round'
+                      strokeWidth={2}
+                      d='M6 18L18 6M6 6l12 12'
+                    />
+                  </svg>
+                </button>
+
+                <div className='text-center space-y-4'>
+                  <div className='mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 shadow-lg'>
+                    <FaDownload className='h-12 w-12 text-white transform -translate-y-0.5' />
+                  </div>
+                  <h3 className='text-3xl font-bold text-gray-900'>
+                    Tải Xuống Tài Liệu
+                  </h3>{' '}
+                  {/* Tăng kích thước tiêu đề */}
+                  <p className='text-gray-600 text-base font-medium'>
+                    {' '}
+                    {/* Tăng kích thước chữ */}
+                    Chọn công ty để tải xuống tài liệu
+                  </p>
+                </div>
+
+                {/* Các nút tải xuống */}
+                <div className='mt-8 flex flex-col gap-5'>
+                  <div className='flex flex-col items-center space-y-2'>
+                    <DownloadButton
+                      duongdan={`/phuonganthicong/export?patcId=${selectedProjectForDownload.id}&companyName=CTYCADICO`}
+                      className='w-full py-4 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl font-semibold shadow-md hover:shadow-lg transform transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-start px-6 gap-3'
+                    >
+                      <FaDownload className='h-7 w-7 text-white flex-shrink-0' />
+                    </DownloadButton>
+
+                    <span className='text-sm font-medium text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full'>
+                      Công Ty Cổ Phần CADICO
+                    </span>
+                  </div>
+
+                  <div className='flex flex-col items-center space-y-2'>
+                    <DownloadButton
+                      duongdan={`/phuonganthicong/export?patcId=${selectedProjectForDownload.id}&companyName=CTYHHD`}
+                      className='w-full py-4 bg-gradient-to-br from-emerald-500 to-emerald-600 text-white rounded-xl font-semibold shadow-md hover:shadow-lg transform transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-between px-6'
+                    ></DownloadButton>
+                    <span className='text-sm font-medium text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full'>
+                      Công Ty Cổ Phần Hưng Hưng Đạt
+                    </span>
+                  </div>
+                </div>
+              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
