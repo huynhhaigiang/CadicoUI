@@ -459,7 +459,6 @@ const SupplyPage = () => {
               <option value='' disabled>
                 -- Chọn người phê duyệt --
               </option>{' '}
-              {/* Thêm option mặc định */}
               {approvers.map(approver => (
                 <option key={approver.id} value={approver.id}>
                   {approver.fullName}

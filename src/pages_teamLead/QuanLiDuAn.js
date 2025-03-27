@@ -323,8 +323,8 @@ const ProjectManagement = () => {
                     <thead className='bg-gray-50'>
                       <tr>
                         {[
-                          'Mã Dự Án',
-                          'Tên Dự Án',
+                          'Số Phương Án',
+                          'Tên Phương Án',
                           'Ngày bắt đầu',
                           'Ngày kết thúc',
                           'Trạng thái',
@@ -397,7 +397,7 @@ const ProjectManagement = () => {
                                 </span>
                               </td>
                               <td className='px-6 py-4'>
-                                <div className='flex space-x-4 text-gray-600'>
+                                <div className='flex space-x-4 text-black-600'>
                                   <button
                                     data-tooltip-id='send-tooltip'
                                     onClick={() => {
@@ -416,7 +416,7 @@ const ProjectManagement = () => {
                                   <button
                                     data-tooltip-id='edit-tooltip'
                                     onClick={() => handleEdit(project)}
-                                    className='hover:text -blue-600 transition-colors'
+                                    className='text-gray-600 hover:text-blue-500 transition-colors'
                                     aria-label='Chỉnh sửa'
                                   >
                                     <FaEdit className='w-5 h-5' />
@@ -462,7 +462,18 @@ const ProjectManagement = () => {
                                   >
                                     <FaEye className='w-5 h-5' />
                                   </button>
-
+                                  <div className='flex space-x-2 text-blue-600'>
+                                    <button
+                                      onClick={() => {
+                                        setSelectedProjectForDownload(project)
+                                        setDownloadModalOpen(true)
+                                      }}
+                                      className='hover:text-blue-600 transition-colors'
+                                      aria-label='Tải xuống'
+                                    >
+                                      <FaDownload className='w-5 h-5' />
+                                    </button>
+                                  </div>
                                   <Tooltip
                                     id='send-tooltip'
                                     place='top'
@@ -506,20 +517,6 @@ const ProjectManagement = () => {
                                
                                 </div>
                               </td> */}
-                              <td className='px-1 py-1'>
-                                <div className='flex space-x-2 text-yellow-600'>
-                                  <button
-                                    onClick={() => {
-                                      setSelectedProjectForDownload(project)
-                                      setDownloadModalOpen(true)
-                                    }}
-                                    className='hover:text-blue-600 transition-colors'
-                                    aria-label='Tải xuống'
-                                  >
-                                    <FaDownload className='w-5 h-5' />
-                                  </button>
-                                </div>
-                              </td>
                             </motion.tr>
                           ))}
                         </AnimatePresence>
@@ -890,7 +887,7 @@ const ProjectManagement = () => {
                     <FaDownload className='h-12 w-12 text-white transform -translate-y-0.5' />
                   </div>
                   <h3 className='text-3xl font-bold text-gray-900'>
-                    Tải Xuống Tài Liệu
+                    Tải Xuống
                   </h3>{' '}
                   {/* Tăng kích thước tiêu đề */}
                   <p className='text-gray-600 text-base font-medium'>
@@ -905,24 +902,21 @@ const ProjectManagement = () => {
                   <div className='flex flex-col items-center space-y-2'>
                     <DownloadButton
                       duongdan={`/phuonganthicong/export?patcId=${selectedProjectForDownload.id}&companyName=CTYCADICO`}
-                      className='w-full py-4 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl font-semibold shadow-md hover:shadow-lg transform transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-start px-6 gap-3'
+                      className='w-full py-4 bg-gradient-to-br from-blue-300 to-blue-600 text-white rounded-xl font-semibold shadow-md hover:shadow-lg transform transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center px-6 gap-3'
                     >
-                      <FaDownload className='h-7 w-7 text-white flex-shrink-0' />
+                      <FaDownload className='h-6 w-6 text-white flex-shrink-0' />
+                      <span>Tải File - CTY CP CADICO</span>
                     </DownloadButton>
-
-                    <span className='text-sm font-medium text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full'>
-                      Công Ty Cổ Phần CADICO
-                    </span>
                   </div>
 
                   <div className='flex flex-col items-center space-y-2'>
                     <DownloadButton
                       duongdan={`/phuonganthicong/export?patcId=${selectedProjectForDownload.id}&companyName=CTYHHD`}
-                      className='w-full py-4 bg-gradient-to-br from-emerald-500 to-emerald-600 text-white rounded-xl font-semibold shadow-md hover:shadow-lg transform transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-between px-6'
-                    ></DownloadButton>
-                    <span className='text-sm font-medium text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full'>
-                      Công Ty Cổ Phần Hưng Hưng Đạt
-                    </span>
+                      className='w-full py-4 bg-gradient-to-br from-green-300 to-green-600 text-white rounded-xl font-semibold shadow-md hover:shadow-lg transform transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center px-6 gap-3'
+                    >
+                      <FaDownload className='h-6 w-6 text-white flex-shrink-0' />
+                      <span>Tải File - CTY CP Hưng Hưng Đạt</span>
+                    </DownloadButton>
                   </div>
                 </div>
               </motion.div>

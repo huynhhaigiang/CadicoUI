@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import {
   FaArrowLeft,
   FaBuilding,
+  FaBusinessTime,
   FaCalendarCheck,
   FaCalendarDay,
   FaChartLine,
@@ -327,8 +328,24 @@ const ProjectDetailsGD = () => {
           {/* Progress Section */}
           <SectionBlock
             title='II. Tiến độ thi công'
-            icon={<FaChartLine className='text-primary-600' />}
+            icon={<FaChartLine className='text-primary-500' />}
           >
+            {data.general?.ghiChuSauTienDoThiCong && (
+              <div className='bg-blue-50 border border-blue-100 rounded-xl p-6 flex items-start space-x-4'>
+                {/* Icon container */}
+                <div className='flex-shrink-0 bg-blue-100 p-2.5 rounded-lg'>
+                  <FaBusinessTime className='text-green-600 text-2xl' />
+                </div>
+
+                {/* Nội dung */}
+                <div className='flex-1'>
+                  <p className='text-gray-700 text-base font-medium leading-normal'>
+                    {data.general.ghiChuSauTienDoThiCong}
+                  </p>
+                </div>
+              </div>
+            )}
+
             <div className='space-y-6'>
               <SubSection title='1. Tiến độ thi công thực tế'>
                 <InfoItem

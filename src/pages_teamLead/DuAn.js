@@ -1,64 +1,69 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import {
-  RiBuilding4Line,
-  RiFileUploadLine,
-  RiRulerLine,
-  RiShoppingCartLine,
-  RiStackLine,
-  RiTeamFill,
-  RiTodoLine,
-  RiUserStarLine,
+  RiBarChartBoxLine,
+  RiDraftLine,
+  RiFileListLine,
+  RiGovernmentLine,
+  RiGroupLine,
+  RiScales3Line,
+  RiToolsLine,
+  RiUserHeartLine,
 } from 'react-icons/ri'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 
 const Projects = () => {
   const navigate = useNavigate()
   const location = useLocation()
+  const [activeTab, setActiveTab] = useState(location.pathname)
 
-  const projectTabs = [
-    {
-      text: 'Công trình',
-      to: 'construction',
-      icon: <RiBuilding4Line className='text-lg' />,
-    },
-    {
-      text: 'Chủ đầu tư',
-      to: 'investor',
-      icon: <RiUserStarLine className='text-lg' />,
-    },
-    {
-      text: 'Đơn vị tính',
-      to: 'unit',
-      icon: <RiRulerLine className='text-lg' />,
-    },
-    {
-      text: 'Loại CV',
-      to: 'typeofwork',
-      icon: <RiTodoLine className='text-lg' />,
-    },
-    {
-      text: 'Hạng CV',
-      to: 'workitems',
-      icon: <RiStackLine className='text-lg' />,
-    },
-    {
-      text: 'Loại vật tư',
-      to: 'supplies',
-      icon: <RiShoppingCartLine className='text-lg' />,
-    },
-    {
-      text: 'Đội thi công',
-      to: 'executionteam',
-      icon: <RiTeamFill className='text-lg' />,
-    },
-    {
-      text: 'Phương án thi công',
-      to: 'upload',
-      icon: <RiFileUploadLine className='text-lg' />,
-    },
-  ]
+  // Danh sách tabs
+  const projectTabs = useMemo(
+    () => [
+      {
+        text: 'Công trình',
+        to: 'construction',
+        icon: <RiGovernmentLine className='text-blue-600' />,
+      },
+      {
+        text: 'Chủ đầu tư',
+        to: 'investor',
+        icon: <RiUserHeartLine className='text-red-500' />,
+      },
+      {
+        text: 'Đơn vị tính',
+        to: 'unit',
+        icon: <RiScales3Line className='text-gray-600' />,
+      },
+      {
+        text: 'Loại CV',
+        to: 'typeofwork',
+        icon: <RiFileListLine className='text-green-500' />,
+      },
+      {
+        text: 'Hạng CV',
+        to: 'workitems',
+        icon: <RiBarChartBoxLine className='text-purple-600' />,
+      },
+      {
+        text: 'Loại vật tư',
+        to: 'supplies',
+        icon: <RiToolsLine className='text-yellow-600' />,
+      },
+      {
+        text: 'Đội thi công',
+        to: 'executionteam',
+        icon: <RiGroupLine className='text-orange-500' />,
+      },
+      {
+        text: 'Phương án thi công',
+        to: 'upload',
+        icon: <RiDraftLine className='text-indigo-600' />,
+      },
+    ],
+    [],
+  )
 
-  // Tự động redirect khi vào root path
+  // Điều hướng mặc định khi vào /projects
   useEffect(() => {
     if (
       location.pathname === '/projects' ||
@@ -66,73 +71,61 @@ const Projects = () => {
     ) {
       navigate('construction', { replace: true })
     }
-  }, [location, navigate])
+    setActiveTab(location.pathname)
+  }, [location.pathname, navigate])
 
   return (
-    <div className='flex flex-col h-full bg-gradient-to-br from-gray-50 to-blue-50'>
-      {/* Header với các tab nâng cao */}
-      <div className='bg-white shadow-lg'>
-        <div className='max-w-8xl mx-auto px-0'>
-          <div className='border-b border-gray-100'>
-            <nav className='flex space-x-0 overflow-x-auto scrollbar-hide'>
-              {projectTabs.map(tab => (
-                <NavLink
-                  key={tab.to}
-                  to={tab.to}
-                  end={tab.to === 'construction'} // Thêm end cho tab mặc định
-                  className={({ isActive }) => `
-                    group relative min-w-max flex items-center py-2 px-4 border-b-2 font-medium text-sm transition-colors
-                    ${
-                      isActive
-                        ? 'border-blue-600 text-blue-700 bg-blue-50/50'
-                        : 'border-transparent text-gray-600 hover:text-blue-600 hover:bg-blue-50/30'
-                    }
-                  `}
+    <div className='flex flex-col h-full bg-gradient-to-br from-gray-50 to-blue-100'>
+      {/* Thanh điều hướng */}
+      <div className='bg-white shadow-lg rounded-t-lg'>
+        <div className='max-w-8xl mx-auto px-6'>
+          <nav className='flex space-x-2 overflow-x-auto scrollbar-hide py-2.5'>
+            {projectTabs.map(tab => (
+              <NavLink
+                key={tab.to}
+                to={tab.to}
+                className={({ isActive }) => `
+                  flex items-center gap-2 py-3 px-5 font-medium text-sm rounded-lg transition-all
+                  ${
+                    isActive
+                      ? 'text-white bg-gradient-to-r from-blue-500 to-indigo-600 shadow-md scale-105'
+                      : 'text-gray-700 hover:text-white hover:bg-gradient-to-r hover:from-blue-400 hover:to-indigo-500 hover:shadow-md hover:scale-105 transition-transform'
+                  }
+                `}
+              >
+                <span
+                  className={`text-lg transition-transform ${
+                    activeTab === `/projects/${tab.to}`
+                      ? 'scale-125'
+                      : 'scale-100'
+                  }`}
                 >
-                  {({ isActive }) => (
-                    <>
-                      <div className='flex items-center space-x-2'>
-                        <span
-                          className={`transition-colors ${
-                            isActive
-                              ? 'text-blue-700'
-                              : 'text-gray-600 group-hover:text-blue-700'
-                          }`}
-                        >
-                          {tab.icon}
-                        </span>
-                        <span>{tab.text}</span>
-                      </div>
-                      {isActive && (
-                        <div className='absolute inset-x-0 bottom-0 h-0.5 bg-blue-600 animate-underline' />
-                      )}
-                    </>
-                  )}
-                </NavLink>
-              ))}
-            </nav>
-          </div>
+                  {tab.icon}
+                </span>
+                <span>{tab.text}</span>
+              </NavLink>
+            ))}
+          </nav>
         </div>
       </div>
 
       {/* Nội dung chính */}
-      <div className='flex-1 p-0 overflow-auto'>
-        <div className='max-w-8xl mx-auto'>
-          <div className='bg-white rounded-none shadow-lg ring-1 ring-black/5 p-0 transition-all duration-300'>
-            <React.Suspense
-              fallback={
-                <div className='flex justify-center py-8'>
-                  <div className='animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent' />
-                </div>
-              }
-            >
-              <Outlet />
-            </React.Suspense>
-          </div>
+      <div className='flex-1 overflow-auto p-1'>
+        <div className='max-w-8xl mx-auto bg-white shadow-lg ring-1 ring-black/5 p-5 rounded-lg transition-all'>
+          <React.Suspense fallback={<LoadingSpinner />}>
+            <Outlet />
+          </React.Suspense>
         </div>
       </div>
     </div>
   )
 }
+
+// Component Spinner
+const LoadingSpinner = () => (
+  <div className='flex justify-center py-8'>
+    <div className='animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent' />
+  </div>
+)
 
 export default Projects
