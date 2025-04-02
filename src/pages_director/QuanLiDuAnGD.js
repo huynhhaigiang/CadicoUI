@@ -1,7 +1,7 @@
 import { format } from 'date-fns'
 import { AnimatePresence, motion } from 'framer-motion'
 import React, { useEffect, useState } from 'react'
-import { FaEye } from 'react-icons/fa'
+import { FaDownload, FaEye } from 'react-icons/fa'
 import Skeleton from 'react-loading-skeleton'
 import 'react-loading-skeleton/dist/skeleton.css'
 import { useNavigate } from 'react-router-dom'
@@ -126,8 +126,10 @@ const ProjectApprovalListGD = () => {
             </button>
             {/* <DownloadButton patcId={project.id} /> */}
             <DownloadButton
-              duongdan={`/phuonganthicong/export/${project.id}`}
-            />
+              duongdan={`/phuonganthicong/export?patcId=${project.id}&companyName=CTYCADICO`}
+            >
+              <FaDownload className='h-4 w-4 text-blue flex-shrink-0' />
+            </DownloadButton>
           </div>
         </td>
       </motion.tr>

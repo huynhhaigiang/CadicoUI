@@ -1,7 +1,7 @@
 import { format } from 'date-fns'
 import { AnimatePresence, motion } from 'framer-motion'
 import React, { useEffect, useState } from 'react'
-import { FaEye } from 'react-icons/fa'
+import { FaDownload, FaEye } from 'react-icons/fa'
 import Skeleton from 'react-loading-skeleton'
 import 'react-loading-skeleton/dist/skeleton.css'
 import { useNavigate } from 'react-router-dom'
@@ -27,6 +27,9 @@ const ProjectApprovalListPGD = () => {
   })
 
   const [selectedStatuses, setSelectedStatuses] = useState([])
+  const [downloadModalOpen, setDownloadModalOpen] = useState(false)
+  const [selectedProjectForDownload, setSelectedProjectForDownload] =
+    useState(null)
 
   useEffect(() => {
     const fetchConstructions = async () => {
@@ -124,9 +127,18 @@ const ProjectApprovalListPGD = () => {
             >
               <FaEye className='w-5 h-5' />
             </button>
-            <DownloadButton
-              duongdan={`/phuonganthicong/export/${project.id}`}
-            />
+            <div className='flex space-x-2 text-blue-600'>
+              <button
+                onClick={() => {
+                  setSelectedProjectForDownload(project)
+                  setDownloadModalOpen(true)
+                }}
+                className='hover:text-blue-600 transition-colors'
+                aria-label='Tải xuống'
+              >
+                <FaDownload className='w-5 h-5' />
+              </button>
+            </div>
           </div>
         </td>
       </motion.tr>
@@ -231,6 +243,85 @@ const ProjectApprovalListPGD = () => {
                     ))}
                   </AnimatePresence>
                 )}
+                <AnimatePresence>
+                  {downloadModalOpen && selectedProjectForDownload && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className='fixed inset-0 bg-black/30 backdrop-blur-md z-50 flex items-center justify-center p-4'
+                    >
+                      <motion.div
+                        initial={{ scale: 0.95, y: 20 }}
+                        animate={{ scale: 1, y: 0 }}
+                        exit={{ scale: 0.95, opacity: 0 }}
+                        className='bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-8 max-w-lg w-full border border-gray-100 relative'
+                      >
+                        {/* Nút đóng */}
+                        <button
+                          onClick={() => {
+                            setDownloadModalOpen(false)
+                            setSelectedProjectForDownload(null)
+                          }}
+                          className='absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full transition-colors'
+                        >
+                          <svg
+                            xmlns='http://www.w3.org/2000/svg'
+                            className='h-6 w-6 text-gray-600' // Tăng kích thước icon đóng
+                            fill='none'
+                            viewBox='0 0 24 24'
+                            stroke='currentColor'
+                          >
+                            <path
+                              strokeLinecap='round'
+                              strokeLinejoin='round'
+                              strokeWidth={2}
+                              d='M6 18L18 6M6 6l12 12'
+                            />
+                          </svg>
+                        </button>
+
+                        <div className='text-center space-y-4'>
+                          <div className='mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 shadow-lg'>
+                            <FaDownload className='h-12 w-12 text-white transform -translate-y-0.5' />
+                          </div>
+                          <h3 className='text-3xl font-bold text-gray-900'>
+                            Tải Xuống
+                          </h3>{' '}
+                          {/* Tăng kích thước tiêu đề */}
+                          <p className='text-gray-600 text-base font-medium'>
+                            {' '}
+                            {/* Tăng kích thước chữ */}
+                            Chọn công ty để tải xuống tài liệu
+                          </p>
+                        </div>
+
+                        {/* Các nút tải xuống */}
+                        <div className='mt-8 flex flex-col gap-5'>
+                          <div className='flex flex-col items-center space-y-2'>
+                            <DownloadButton
+                              duongdan={`/phuonganthicong/export?patcId=${selectedProjectForDownload.id}&companyName=CTYCADICO`}
+                              className='w-full py-4 bg-gradient-to-br from-blue-300 to-blue-600 text-white rounded-xl font-semibold shadow-md hover:shadow-lg transform transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center px-6 gap-3'
+                            >
+                              <FaDownload className='h-6 w-6 text-white flex-shrink-0' />
+                              <span>Tải File - CTY CP CADICO</span>
+                            </DownloadButton>
+                          </div>
+
+                          <div className='flex flex-col items-center space-y-2'>
+                            <DownloadButton
+                              duongdan={`/phuonganthicong/export?patcId=${selectedProjectForDownload.id}&companyName=CTYHHD`}
+                              className='w-full py-4 bg-gradient-to-br from-green-300 to-green-600 text-white rounded-xl font-semibold shadow-md hover:shadow-lg transform transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center px-6 gap-3'
+                            >
+                              <FaDownload className='h-6 w-6 text-white flex-shrink-0' />
+                              <span>Tải File - CTY CP Hưng Hưng Đạt</span>
+                            </DownloadButton>
+                          </div>
+                        </div>
+                      </motion.div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </tbody>
             </table>
           </div>
