@@ -246,6 +246,11 @@ const Navigation = ({ onToggle }) => {
       },
       {
         icon: <RiShoppingCart2Line />,
+        text: 'Quản lí vật tư phụ',
+        to: '/submaterialmanagement',
+      },
+      {
+        icon: <RiShoppingCart2Line />,
         text: 'Cung ứng vật tư',
         to: '/supplymanagement',
       },

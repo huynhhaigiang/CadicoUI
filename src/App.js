@@ -29,6 +29,7 @@ import SupplyManagementTP from './pages_materialSupply/QuanLiCungUngTP'
 import SupplyDetailPage from './pages_materialSupplyEmployee/ChiTietPhieu'
 import SupplyPage from './pages_materialSupplyEmployee/PhieuCungUng'
 import SupplyManagement from './pages_materialSupplyEmployee/QuanLiCungUng'
+import SubMaterialManagement from './pages_materialSupplyEmployee/QuanLiVatTuPhu'
 import ProjectDetailsTP from './pages_progressTracker/ChiTietDuAnTP'
 import ProjectApprovalListTP from './pages_progressTracker/QuanLiDuAnPT'
 import ProgressReportPage from './pages_teamLead/BaoCaoTienDo'
@@ -175,6 +176,10 @@ function App() {
             <Route
               path='/supply-detailTP/:id'
               element={<SupplyDetailPageTP />}
+            />
+            <Route
+              path='/submaterialmanagement'
+              element={<SubMaterialManagement />}
             />
             {/*Chức năng chuyên viên kiểm soát tiến độ */}
             <Route
