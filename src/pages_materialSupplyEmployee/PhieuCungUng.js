@@ -49,6 +49,7 @@ const SupplyPage = () => {
   const [editingChiTietIndex, setEditingChiTietIndex] = useState(-1)
   const [vatRate, setVatRate] = useState(10)
   const [luyKe, setLuyKe] = useState(0)
+  const [pendingVatTuPhu, setPendingVatTuPhu] = useState([])
 
   useEffect(() => {
     fetchSupplies()
@@ -65,11 +66,22 @@ const SupplyPage = () => {
 
   const fetchDeXuatVatTu = async () => {
     try {
-      const response = await get(`/DeXuatVatTu/dsdexuatvattu/${id}`)
+      const response = await get(`/DeXuatVatTu/dsdexuatvattukemvattuphu/${id}`)
       setDeXuatVatTuList(response.data)
     } catch (error) {
       toast.error('Lỗi tải danh sách vật tư')
     }
+  }
+  const findDeXuatVatTuById = id => {
+    // Tìm trong cả vật tư chính và phụ
+    for (const main of deXuatVatTuList) {
+      if (main.id === id) return main
+      if (main.childDeXuatVatTu) {
+        const found = main.childDeXuatVatTu.find(child => child.id === id)
+        if (found) return found
+      }
+    }
+    return null
   }
 
   const handleSubmitApproval = async () => {
@@ -153,35 +165,119 @@ const SupplyPage = () => {
       return
     }
 
-    const calculations = calculateThanhTien(
-      chiTietCungUng.soLuong,
-      chiTietCungUng.donGia,
-      vatRate,
-    )
-
     const newItem = {
       ...chiTietCungUng,
-      ...calculations,
+      thanhTien: Number(
+        (chiTietCungUng.soLuong * chiTietCungUng.donGia).toFixed(2),
+      ),
+      vat: Number(
+        (
+          (chiTietCungUng.soLuong * chiTietCungUng.donGia * vatRate) /
+          100
+        ).toFixed(2),
+      ),
+      thanhTienVAT: Number(
+        (
+          chiTietCungUng.soLuong *
+          chiTietCungUng.donGia *
+          (1 + vatRate / 100)
+        ).toFixed(2),
+      ),
     }
 
     const newList = [...chiTietCungUngList]
+
     if (editingChiTietIndex > -1) {
+      // Cập nhật vật tư chính
       newList[editingChiTietIndex] = newItem
     } else {
+      // Thêm vật tư chính
       newList.push(newItem)
     }
 
+    // Thêm vật tư phụ
+    pendingVatTuPhu.forEach(phu => {
+      const childSoLuong = Number(
+        (chiTietCungUng.soLuong * phu.ratio).toFixed(4),
+      )
+      const childCalculations = calculateThanhTien(
+        childSoLuong,
+        phu.donGia,
+        vatRate,
+      )
+
+      const childItem = {
+        ...childCalculations,
+        soLuong: childSoLuong,
+        donGia: phu.donGia,
+        nhaCungCap: chiTietCungUng.nhaCungCap,
+        ghiChu: chiTietCungUng.ghiChu,
+        deXuatVatTuId: phu.id,
+      }
+
+      // Kiểm tra xem vật tư phụ đã tồn tại chưa
+      if (!newList.some(item => item.deXuatVatTuId === phu.id)) {
+        newList.push(childItem)
+      }
+    })
+
     setChiTietCungUngList(newList)
     resetChiTietForm()
+    setPendingVatTuPhu([])
   }
 
   const handleEditChiTiet = index => {
-    setChiTietCungUng(chiTietCungUngList[index])
-    setEditingChiTietIndex(index)
-  }
+    const editedItem = chiTietCungUngList[index]
+    const material = findDeXuatVatTuById(editedItem.deXuatVatTuId)
 
+    if (material?.loaiVatTu?.isVatTuPhu) {
+      toast.error('Không thể chỉnh sửa vật tư phụ trực tiếp')
+      return
+    }
+
+    setChiTietCungUng(editedItem)
+    setEditingChiTietIndex(index)
+
+    // Tìm và set vật tư phụ liên quan
+    const mainVatTu = deXuatVatTuList.find(
+      item => item.id === editedItem.deXuatVatTuId,
+    )
+    if (mainVatTu?.childDeXuatVatTu) {
+      const mainKlDeNghi = mainVatTu.klDeNghi || 1
+      const updatedPhuList = mainVatTu.childDeXuatVatTu.map(phu => ({
+        ...phu,
+        ratio: phu.klDeNghi / mainKlDeNghi,
+      }))
+      setPendingVatTuPhu(updatedPhuList)
+    }
+  }
   const handleDeleteChiTiet = index => {
-    setChiTietCungUngList(chiTietCungUngList.filter((_, i) => i !== index))
+    const itemToDelete = chiTietCungUngList[index]
+    const material = findDeXuatVatTuById(itemToDelete.deXuatVatTuId)
+
+    if (material?.loaiVatTu?.isVatTuPhu) {
+      toast.error('Vui lòng xóa vật tư chính để xóa vật tư phụ liên quan')
+      return
+    }
+
+    if (!window.confirm('Tất cả vật tư phụ liên quan sẽ bị xóa!')) return
+
+    // Tìm vật tư chính trong danh sách deXuatVatTuList để lấy thông tin về các vật tư phụ liên quan
+    const mainVatTu = deXuatVatTuList.find(
+      item => item.id === itemToDelete.deXuatVatTuId,
+    )
+
+    // Tạo mảng chứa ID của vật tư phụ
+    const childIds = mainVatTu?.childDeXuatVatTu?.map(child => child.id) || []
+
+    // Lọc ra danh sách mới không bao gồm vật tư chính và các vật tư phụ liên quan
+    const newList = chiTietCungUngList.filter(
+      item =>
+        item.deXuatVatTuId !== itemToDelete.deXuatVatTuId &&
+        !childIds.includes(item.deXuatVatTuId),
+    )
+
+    setChiTietCungUngList(newList)
   }
 
   const resetChiTietForm = () => {
@@ -255,6 +351,7 @@ const SupplyPage = () => {
     setChiTietCungUngList([])
     resetChiTietForm()
     setCurrentStep(1)
+    setPendingVatTuPhu([])
   }
 
   const filteredSupplies = useMemo(() => {
@@ -273,7 +370,20 @@ const SupplyPage = () => {
       ...prev,
       deXuatVatTuId: selectedId,
       donGia: selected?.donGia || 0,
+      soLuong: 0,
     }))
+
+    // Lấy danh sách vật tư phụ
+    if (selected?.childDeXuatVatTu?.length > 0) {
+      const mainKlDeNghi = selected.klDeNghi || 1 // Tránh chia cho 0
+      const updatedPhuList = selected.childDeXuatVatTu.map(phu => ({
+        ...phu,
+        ratio: phu.klDeNghi / mainKlDeNghi,
+      }))
+      setPendingVatTuPhu(updatedPhuList)
+    } else {
+      setPendingVatTuPhu([])
+    }
 
     if (selectedId) {
       try {
@@ -444,6 +554,49 @@ const SupplyPage = () => {
           </div>
         )}
       </div>
+      {/* Thêm phần hiển thị vật tư phụ trong modal */}
+      {pendingVatTuPhu.length > 0 && (
+        <div className='mt-4 bg-blue-50 p-4 rounded-lg'>
+          <h4 className='font-semibold text-sm text-blue-800 mb-3'>
+            Vật tư phụ sẽ được tự động thêm:
+          </h4>
+          {pendingVatTuPhu.map((phu, index) => {
+            const mainVatTu = deXuatVatTuList.find(
+              vt => vt.id === chiTietCungUng.deXuatVatTuId,
+            )
+            const ratioDisplay = mainVatTu
+              ? `${phu.klDeNghi} / ${mainVatTu.klDeNghi}`
+              : '0'
+            const childSoLuong = chiTietCungUng.soLuong
+              ? Number((chiTietCungUng.soLuong * phu.ratio).toFixed(4))
+              : 0
+
+            return (
+              <div
+                key={index}
+                className='bg-white p-3 rounded border border-blue-100 mb-2'
+              >
+                <div className='grid grid-cols-4 gap-2 text-sm items-center'>
+                  <div className='font-medium'>{phu.loaiVatTu.name}</div>
+                  <div>
+                    <span className='text-gray-500'>Tỷ lệ: </span>
+                    {ratioDisplay}
+                  </div>
+                  <div>
+                    <span className='text-gray-500'>Số lượng: </span>
+                    {chiTietCungUng.soLuong || 0} × {phu.ratio.toFixed(2)} ={' '}
+                    {childSoLuong}
+                  </div>
+                  <div>
+                    <span className='text-gray-500'>Đơn giá: </span>
+                    {phu.donGia.toLocaleString()} VND
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
 
       {showSubmitModal && (
         <div className='fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50'>
@@ -800,65 +953,64 @@ const SupplyPage = () => {
                           </tr>
                         </thead>
                         <tbody className='divide-y divide-gray-100'>
-                          {chiTietCungUngList.map((item, index) => (
-                            <tr
-                              key={index}
-                              className='hover:bg-gray-50 transition-all duration-200'
-                            >
-                              <td className='p-3'>
-                                {deXuatVatTuList.find(
-                                  vt => vt.id === item.deXuatVatTuId,
-                                )?.loaiVatTu.name || 'N/A'}
-                              </td>
-                              <td className='p-3'>{item.soLuong}</td>
-                              <td className='p-3'>
-                                {item.donGia.toLocaleString()} VND
-                              </td>
-                              <td className='p-3'>
-                                {item.thanhTien
-                                  ? item.thanhTien.toLocaleString()
-                                  : '0'}{' '}
-                                VND
-                              </td>
-                              <td className='p-3'>
-                                {item.vat !== undefined && item.vat !== null
-                                  ? item.vat.toLocaleString()
-                                  : '0'}{' '}
-                                VND
-                              </td>
-                              <td className='p-3'>
-                                {item.thanhTienVAT !== undefined &&
-                                item.thanhTienVAT !== null
-                                  ? item.thanhTienVAT.toLocaleString()
-                                  : '0'}{' '}
-                                VND
-                              </td>
-                              <td className='p-3'>
-                                {item.nhaCungCap.toLocaleString()}
-                              </td>
-                              <td className='p-3'>
-                                {item.ghiChu.toLocaleString()}
-                              </td>
-                              <td className='p-3 text-center'>
-                                <div className='flex justify-center gap-2'>
-                                  <button
-                                    className='text-blue-600 hover:text-blue-800 p-2 rounded-full hover:bg-blue-100 transition-all duration-200'
-                                    onClick={() => handleEditChiTiet(index)}
-                                    title='Chỉnh sửa'
-                                  >
-                                    <FaEdit size={18} />
-                                  </button>
-                                  <button
-                                    className='text-red-600 hover:text-red-800 p-2 rounded-full hover:bg-red-100 transition-all duration-200'
-                                    onClick={() => handleDeleteChiTiet(index)}
-                                    title='Xóa'
-                                  >
-                                    <FaTrash size={18} />
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
+                          {chiTietCungUngList.map((item, index) => {
+                            const material = findDeXuatVatTuById(
+                              item.deXuatVatTuId,
+                            )
+                            const isVatTuPhu = material?.loaiVatTu?.isVatTuPhu
+                            return (
+                              <tr
+                                key={index}
+                                className='hover:bg-gray-50 transition-all duration-200'
+                              >
+                                <td className='p-3'>
+                                  {material?.loaiVatTu?.name || 'N/A'}
+                                  {material?.loaiVatTu?.isVatTuPhu && (
+                                    <span className='ml-2 text-xs text-gray-500'>
+                                      (Vật tư phụ)
+                                    </span>
+                                  )}
+                                </td>
+                                <td className='p-3'>{item.soLuong}</td>
+                                <td className='p-3'>
+                                  {item.donGia.toLocaleString()} VND
+                                </td>
+                                <td className='p-3'>
+                                  {item.thanhTien.toLocaleString()} VND
+                                </td>
+                                <td className='p-3'>
+                                  {item.vat.toLocaleString()} VND
+                                </td>
+                                <td className='p-3'>
+                                  {item.thanhTienVAT.toLocaleString()} VND
+                                </td>
+                                <td className='p-3'>{item.nhaCungCap}</td>
+                                <td className='p-3'>{item.ghiChu}</td>
+                                <td className='p-3 text-center'>
+                                  <div className='flex justify-center gap-2'>
+                                    <button
+                                      className='text-blue-600 hover:text-blue-800 p-2 rounded-full hover:bg-blue-100 transition-all duration-200'
+                                      onClick={() => handleEditChiTiet(index)}
+                                      title='Chỉnh sửa'
+                                    >
+                                      <FaEdit size={18} />
+                                    </button>
+                                    {!isVatTuPhu && (
+                                      <button
+                                        className='text-red-600 hover:text-red-800 p-2 rounded-full hover:bg-red-100 transition-all duration-200'
+                                        onClick={() =>
+                                          handleDeleteChiTiet(index)
+                                        }
+                                        title='Xóa'
+                                      >
+                                        <FaTrash size={18} />
+                                      </button>
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            )
+                          })}
                         </tbody>
                       </table>
                     </div>

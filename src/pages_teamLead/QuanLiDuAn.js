@@ -64,6 +64,7 @@ const ProjectManagement = () => {
     { key: 'giaTriHD', label: 'Giá trị hợp đồng', type: 'number' },
     { key: 'ghiChu', label: 'Ghi chú sau giá trị hợp đồng', type: 'textarea' },
     { key: 'ngayHopDong', label: 'Ngày hợp đồng', type: 'date' },
+    { key: 'ngayTaoPhuongAn', label: 'Ngày tạo phương án', type: 'date' },
     { key: 'batDauThiCong', label: 'Ngày bắt đầu', type: 'date' },
     { key: 'ketThucThiCong', label: 'Ngày kết thúc', type: 'date' },
     {

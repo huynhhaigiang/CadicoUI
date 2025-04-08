@@ -26,6 +26,7 @@ import ProjectManagementStackTP from './pages_manager/QuanLiTienDoTP'
 import SupplyDetailPageTP from './pages_materialSupply/ChiTietPhieuTP'
 import SupplyPageTP from './pages_materialSupply/PhieuCungUngTP'
 import SupplyManagementTP from './pages_materialSupply/QuanLiCungUngTP'
+import BoVatTuManager from './pages_materialSupplyEmployee/BoVatTu'
 import SupplyDetailPage from './pages_materialSupplyEmployee/ChiTietPhieu'
 import SupplyPage from './pages_materialSupplyEmployee/PhieuCungUng'
 import SupplyManagement from './pages_materialSupplyEmployee/QuanLiCungUng'
@@ -167,6 +168,7 @@ function App() {
             <Route path='/supplymanagement' element={<SupplyManagement />} />
             <Route path='/phuong-an/:id' element={<SupplyPage />} />
             <Route path='/supply-detail/:id' element={<SupplyDetailPage />} />
+            <Route path='/bovattumanager' element={<BoVatTuManager />} />
             {/*Chức năng đội trưởng cung ứng vật tư */}
             <Route
               path='/supplymanagementTP'

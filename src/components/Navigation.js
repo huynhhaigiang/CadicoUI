@@ -251,6 +251,11 @@ const Navigation = ({ onToggle }) => {
       },
       {
         icon: <RiShoppingCart2Line />,
+        text: 'Quản lí bộ vật tư',
+        to: '/bovattumanager',
+      },
+      {
+        icon: <RiShoppingCart2Line />,
         text: 'Cung ứng vật tư',
         to: '/supplymanagement',
       },
