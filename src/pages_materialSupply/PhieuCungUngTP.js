@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { FaEye } from 'react-icons/fa'
+import { FaDownload, FaEye } from 'react-icons/fa'
 import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { get } from '../api/axiosClient'
@@ -27,7 +27,7 @@ const SupplyPageTP = () => {
 
   const fetchSupplies = async () => {
     try {
-      const response = await get(`/PhieuCungUngVatTu/dsphieucungung/${id}`)
+      const response = await get(`/PhieuCungUngVatTu/dsphieucungung/patc/${id}`)
       setSupplies(response.data)
     } catch (error) {
       toast.error('Lỗi tải danh sách phiếu cung ứng')
@@ -167,7 +167,9 @@ const SupplyPageTP = () => {
                     </button>
                     <DownloadButton
                       duongdan={`/PhieuCungUngVatTu/export/${supply.id}`}
-                    />
+                    >
+                      <FaDownload className='h-4 w-4 text-blue flex-shrink-0' />
+                    </DownloadButton>
                   </div>
                 </td>
               </tr>

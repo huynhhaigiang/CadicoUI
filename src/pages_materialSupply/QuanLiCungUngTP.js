@@ -1,17 +1,10 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import React, { useEffect, useState } from 'react'
-import { FaChevronDown, FaShippingFast } from 'react-icons/fa'
+import { FaChevronDown, FaEye, FaShippingFast } from 'react-icons/fa'
 import Skeleton from 'react-loading-skeleton'
 import 'react-loading-skeleton/dist/skeleton.css'
 import { useNavigate } from 'react-router-dom'
 import { get } from '../api/axiosClient'
-
-// const statusConfig = {
-//   0: { color: 'bg-gray-100 text-gray-800', label: 'Chờ phê duyệt' },
-//   1: { color: 'bg-amber-100 text-amber-800', label: 'Đã phê duyệt' },
-//   2: { color: 'bg-green-100 text-green-800', label: 'Đang thi công' },
-//   3: { color: 'bg-red-100 text-red-800', label: 'Đã hủy' },
-// }
 
 const SupplyManagementTP = () => {
   const navigate = useNavigate()
@@ -33,7 +26,6 @@ const SupplyManagementTP = () => {
       const response = await get(
         '/CongTrinh/all-construction-with-project-approval',
       )
-      console.log('API Response:', response.data) // Debug dữ liệu trả về
       setState(prev => ({ ...prev, constructions: response.data }))
     } catch (error) {
       setState(prev => ({ ...prev, error: 'Lỗi tải danh sách công trình' }))
@@ -104,19 +96,41 @@ const SupplyManagementTP = () => {
                             key={pa.id}
                             className='flex justify-between items-center p-2 bg-white rounded-lg shadow-sm mb-2'
                           >
-                            <span>
-                              {pa.code} ({pa.name})
-                            </span>
-                            <span>
-                              {pa.batDauThiCong} - {pa.ketThucThiCong}
-                            </span>
-                            <button
-                              onClick={() => navigate(`/phuong-anTP/${pa.id}`)}
-                              className='px-3 py-1 bg-gray-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2'
-                            >
-                              <FaShippingFast className='text-sm' /> Cung ứng
-                              vật tư
-                            </button>
+                            <div className='flex flex-col'>
+                              <span className='font-medium'>
+                                {pa.code} - {pa.name}
+                              </span>
+                              <span className='text-sm text-gray-500'>
+                                {pa.batDauThiCong} - {pa.ketThucThiCong}
+                              </span>
+                            </div>
+
+                            <div className='flex items-center gap-3'>
+                              <button
+                                onClick={() =>
+                                  navigate(`/phuong-anTP/${pa.id}`)
+                                }
+                                className='px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 text-sm'
+                              >
+                                <FaShippingFast className='text-sm' />
+                                Cung ứng vật tư
+                              </button>
+
+                              <button
+                                onClick={() =>
+                                  navigate(
+                                    `/projectmanagementTP/${pa.id}/details`, // Sử dụng pa.id
+                                    {
+                                      state: { project: pa }, // Truyền pa như là project
+                                    },
+                                  )
+                                }
+                                className='hover:text-purple-600 transition-colors'
+                                aria-label='Xem chi tiết'
+                              >
+                                <FaEye className='w-5 h-5' />
+                              </button>
+                            </div>
                           </li>
                         ))}
                       </ul>

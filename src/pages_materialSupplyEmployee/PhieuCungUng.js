@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import {
+  FaDownload,
   FaEdit,
   FaEye,
   FaPaperPlane,
@@ -57,7 +58,7 @@ const SupplyPage = () => {
 
   const fetchSupplies = async () => {
     try {
-      const response = await get(`/PhieuCungUngVatTu/dsphieucungung/${id}`)
+      const response = await get(`/PhieuCungUngVatTu/dsphieucungung/patc/${id}`)
       setSupplies(response.data)
     } catch (error) {
       toast.error('Lỗi tải danh sách phiếu cung ứng')
@@ -188,38 +189,81 @@ const SupplyPage = () => {
     const newList = [...chiTietCungUngList]
 
     if (editingChiTietIndex > -1) {
-      // Cập nhật vật tư chính
+      // Cập nhật item hiện tại (có thể là vật tư chính hoặc phụ)
       newList[editingChiTietIndex] = newItem
+
+      // Chỉ tự động cập nhật vật tư phụ nếu đang cập nhật vật tư chính
+      // và không phải đang chỉnh sửa vật tư phụ trực tiếp
+      const material = findDeXuatVatTuById(chiTietCungUng.deXuatVatTuId)
+      const isUpdatingMainMaterial = !material?.loaiVatTu?.isVatTuPhu
+
+      if (isUpdatingMainMaterial && pendingVatTuPhu.length > 0) {
+        // Cập nhật các vật tư phụ
+        pendingVatTuPhu.forEach(phu => {
+          const childSoLuong = Number(
+            (chiTietCungUng.soLuong * phu.ratio).toFixed(4),
+          )
+          const childCalculations = calculateThanhTien(
+            childSoLuong,
+            phu.donGia,
+            vatRate,
+          )
+
+          const childItem = {
+            ...childCalculations,
+            soLuong: childSoLuong,
+            donGia: phu.donGia,
+            nhaCungCap: chiTietCungUng.nhaCungCap,
+            ghiChu: chiTietCungUng.ghiChu,
+            deXuatVatTuId: phu.id,
+          }
+
+          // Tìm index của vật tư phụ trong danh sách nếu đã tồn tại
+          const existingChildIndex = newList.findIndex(
+            item => item.deXuatVatTuId === phu.id,
+          )
+          if (existingChildIndex > -1) {
+            // Cập nhật vật tư phụ đã tồn tại
+            newList[existingChildIndex] = childItem
+          } else {
+            // Thêm vật tư phụ mới
+            newList.push(childItem)
+          }
+        })
+      }
     } else {
-      // Thêm vật tư chính
+      // Thêm vật tư chính mới
       newList.push(newItem)
+
+      // Thêm vật tư phụ cho vật tư chính mới
+      pendingVatTuPhu.forEach(phu => {
+        const childSoLuong = Number(
+          (chiTietCungUng.soLuong * phu.ratio).toFixed(4),
+        )
+        const childCalculations = calculateThanhTien(
+          childSoLuong,
+          phu.donGia,
+          vatRate,
+        )
+
+        const childItem = {
+          ...childCalculations,
+          soLuong: childSoLuong,
+          donGia: phu.donGia,
+          nhaCungCap: chiTietCungUng.nhaCungCap,
+          ghiChu: chiTietCungUng.ghiChu,
+          deXuatVatTuId: phu.id,
+        }
+
+        // Kiểm tra xem vật tư phụ đã tồn tại chưa
+        const existingChildIndex = newList.findIndex(
+          item => item.deXuatVatTuId === phu.id,
+        )
+        if (existingChildIndex === -1) {
+          newList.push(childItem)
+        }
+      })
     }
-
-    // Thêm vật tư phụ
-    pendingVatTuPhu.forEach(phu => {
-      const childSoLuong = Number(
-        (chiTietCungUng.soLuong * phu.ratio).toFixed(4),
-      )
-      const childCalculations = calculateThanhTien(
-        childSoLuong,
-        phu.donGia,
-        vatRate,
-      )
-
-      const childItem = {
-        ...childCalculations,
-        soLuong: childSoLuong,
-        donGia: phu.donGia,
-        nhaCungCap: chiTietCungUng.nhaCungCap,
-        ghiChu: chiTietCungUng.ghiChu,
-        deXuatVatTuId: phu.id,
-      }
-
-      // Kiểm tra xem vật tư phụ đã tồn tại chưa
-      if (!newList.some(item => item.deXuatVatTuId === phu.id)) {
-        newList.push(childItem)
-      }
-    })
 
     setChiTietCungUngList(newList)
     resetChiTietForm()
@@ -232,10 +276,11 @@ const SupplyPage = () => {
 
     const material = findDeXuatVatTuById(editedItem.deXuatVatTuId)
 
-    if (material?.loaiVatTu?.isVatTuPhu) {
-      toast.error('Không thể chỉnh sửa vật tư phụ trực tiếp')
-      return
-    }
+    // Bỏ đoạn check này:
+    // if (material?.loaiVatTu?.isVatTuPhu) {
+    //   toast.error('Không thể chỉnh sửa vật tư phụ trực tiếp')
+    //   return
+    // }
 
     // Set đầy đủ thông tin chi tiết
     setChiTietCungUng({
@@ -256,22 +301,6 @@ const SupplyPage = () => {
     }
 
     setEditingChiTietIndex(index)
-
-    // Tìm và set vật tư phụ liên quan
-    const mainVatTu = deXuatVatTuList.find(
-      item => item.id === editedItem.deXuatVatTuId,
-    )
-    if (mainVatTu?.childDeXuatVatTu && mainVatTu.childDeXuatVatTu.length > 0) {
-      const mainKlDeNghi = mainVatTu.klDeNghi || 1
-      const updatedPhuList = mainVatTu.childDeXuatVatTu.map(phu => ({
-        ...phu,
-        ratio: phu.klDeNghi / mainKlDeNghi,
-        donGia: phu.donGia || 0,
-      }))
-      setPendingVatTuPhu(updatedPhuList)
-    } else {
-      setPendingVatTuPhu([])
-    }
 
     // Load lũy kế nếu cần
     if (editedItem.deXuatVatTuId) {
@@ -338,35 +367,56 @@ const SupplyPage = () => {
 
   const handleSaveSupply = async () => {
     try {
-      if (editId) {
-        // Trường hợp cập nhật phiếu
-        console.log('Đang cập nhật phiếu:', editId)
-        console.log('Dữ liệu chi tiết cung ứng:', chiTietCungUngList)
+      // Kiểm tra nếu danh sách chi tiết rỗng
+      if (chiTietCungUngList.length === 0) {
+        toast.error('Vui lòng thêm ít nhất một vật tư')
+        return
+      }
 
-        // Cập nhật thông tin phiếu
+      if (editId) {
+        // === CHẾ ĐỘ CẬP NHẬT ===
+        // 1. Cập nhật thông tin phiếu
         await put(`/PhieuCungUngVatTu/${editId}`, {
           diaDiem,
           noiDung,
           phuongAnThiCongId: id,
         })
 
-        // Cập nhật chi tiết cung ứng
-        // LƯU Ý: Tùy vào API của bạn, có thể cần xóa chi tiết cũ trước
-        // hoặc có API riêng để cập nhật
-
-        // Phương án 1: Xóa chi tiết cũ và thêm mới
-        await del(`/ChiTietCungUng/phieu/${editId}`)
-
-        // Thêm chi tiết mới với ID phiếu đã có
-        const chiTietPayload = chiTietCungUngList.map(item => ({
-          ...item,
+        // 2. Chuẩn hóa danh sách chi tiết
+        const processedChiTietList = chiTietCungUngList.map(item => ({
+          id: item.id, // Có thể undefined
+          soLuong: item.soLuong,
+          donGia: item.donGia,
+          thanhTien: item.thanhTien,
+          vat: item.vat,
+          thanhTienVAT: item.thanhTienVAT,
+          nhaCungCap: item.nhaCungCap || '',
+          ghiChu: item.ghiChu || '',
+          deXuatVatTuId: Number(item.deXuatVatTuId || item.deXuatVatTu?.id),
           phieuCungUngVatTuId: editId,
         }))
 
-        await post('/ChiTietCungUng/batch', chiTietPayload)
+        if (
+          processedChiTietList.some(
+            item => !item.deXuatVatTuId || !item.phieuCungUngVatTuId,
+          )
+        ) {
+          toast.error('Dữ liệu chi tiết không hợp lệ. Vui lòng kiểm tra lại.')
+          return
+        }
+
+        // 3. Cập nhật từng item
+        for (const item of processedChiTietList) {
+          if (item.id) {
+            await put(`/ChiTietCungUng/${item.id}`, item)
+          } else {
+            await post('/ChiTietCungUng', item)
+          }
+        }
+
         toast.success('Cập nhật phiếu thành công')
       } else {
-        // Trường hợp tạo mới (code gốc)
+        // === CHẾ ĐỘ TẠO MỚI ===
         const phieuResponse = await post('/PhieuCungUngVatTu', {
           diaDiem,
           noiDung,
@@ -375,20 +425,26 @@ const SupplyPage = () => {
 
         const chiTietPayload = chiTietCungUngList.map(item => ({
           ...item,
+          deXuatVatTuId: Number(item.deXuatVatTuId || item.deXuatVatTu?.id),
           phieuCungUngVatTuId: phieuResponse.data.id,
         }))
 
         await post('/ChiTietCungUng/batch', chiTietPayload)
+
         toast.success('Tạo phiếu thành công')
       }
 
-      // Refresh danh sách và đóng modal
+      // Reset form & reload
       fetchSupplies()
       setShowModal(false)
       resetForm()
     } catch (error) {
       console.error('Lỗi khi lưu phiếu:', error)
-      toast.error(error.response?.data?.detail || 'Lỗi khi lưu phiếu cung ứng')
+      const errorMessage =
+        error.response?.data?.detail ||
+        error.response?.data?.message ||
+        'Lỗi khi lưu phiếu cung ứng'
+      toast.error(errorMessage)
     }
   }
 
@@ -398,26 +454,28 @@ const SupplyPage = () => {
     setEditId(supply.id)
 
     try {
-      // Đảm bảo load danh sách đề xuất vật tư TRƯỚC khi load chi tiết
       await fetchDeXuatVatTu()
-
-      // Sau đó mới load chi tiết cung ứng
       const chiTietResponse = await get(
         `/ChiTietCungUng/phieucungung/${supply.id}`,
       )
-      if (chiTietResponse.data && chiTietResponse.data.length > 0) {
-        setChiTietCungUngList(chiTietResponse.data)
-      } else if (supply.chiTietCungUng && supply.chiTietCungUng.length > 0) {
-        setChiTietCungUngList(supply.chiTietCungUng)
-      } else {
-        setChiTietCungUngList([])
-      }
 
-      // Hiển thị modal
+      if (chiTietResponse.data?.length > 0) {
+        const transformedData = chiTietResponse.data.map(item => ({
+          id: item.id, // Thêm ID của chi tiết
+          soLuong: item.soLuong,
+          donGia: item.donGia,
+          thanhTien: item.thanhTien,
+          vat: item.vat,
+          thanhTienVAT: item.thanhTienVAT,
+          nhaCungCap: item.nhaCungCap || '',
+          ghiChu: item.ghiChu || '',
+          deXuatVatTuId: item.deXuatVatTu?.id || item.deXuatVatTuId,
+        }))
+        setChiTietCungUngList(transformedData)
+      }
       setShowModal(true)
       setCurrentStep(1)
     } catch (error) {
-      console.error('Lỗi khi load dữ liệu:', error)
       toast.error('Lỗi khi tải dữ liệu')
     }
   }
@@ -440,7 +498,7 @@ const SupplyPage = () => {
       thanhTienVAT: chiTietItem.thanhTienVAT || 0,
       nhaCungCap: chiTietItem.nhaCungCap || '',
       ghiChu: chiTietItem.ghiChu || '',
-      deXuatVatTuId: chiTietItem.deXuatVatTuId,
+      deXuatVatTuId: chiTietItem.deXuatVatTu?.id,
     })
 
     // Load thông tin lũy kế nếu có
@@ -701,7 +759,9 @@ const SupplyPage = () => {
                     </button>
                     <DownloadButton
                       duongdan={`/PhieuCungUngVatTu/export/${supply.id}`}
-                    />
+                    >
+                      <FaDownload className='h-4 w-4 text-blue flex-shrink-0' />
+                    </DownloadButton>
                   </div>
                 </td>
               </tr>
@@ -1155,17 +1215,13 @@ const SupplyPage = () => {
                                     >
                                       <FaEdit size={18} />
                                     </button>
-                                    {!isVatTuPhu && (
-                                      <button
-                                        className='text-red-600 hover:text-red-800 p-2 rounded-full hover:bg-red-100 transition-all duration-200'
-                                        onClick={() =>
-                                          handleDeleteChiTiet(index)
-                                        }
-                                        title='Xóa'
-                                      >
-                                        <FaTrash size={18} />
-                                      </button>
-                                    )}
+                                    <button
+                                      className='text-red-600 hover:text-red-800 p-2 rounded-full hover:bg-red-100 transition-all duration-200'
+                                      onClick={() => handleDeleteChiTiet(index)}
+                                      title='Xóa'
+                                    >
+                                      <FaTrash size={18} />
+                                    </button>
                                   </div>
                                 </td>
                               </tr>
@@ -1180,7 +1236,11 @@ const SupplyPage = () => {
 
               <div className='flex justify-end mt-6'>
                 <button
-                  onClick={handleNextStepWithDataLoad}
+                  onClick={
+                    currentStep === 1
+                      ? handleNextStepWithDataLoad
+                      : handleSaveSupply
+                  }
                   className='bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 shadow-md hover:shadow-lg transition-all duration-300'
                 >
                   {currentStep === 1
