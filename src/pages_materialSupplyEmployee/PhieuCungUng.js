@@ -228,6 +228,8 @@ const SupplyPage = () => {
 
   const handleEditChiTiet = index => {
     const editedItem = chiTietCungUngList[index]
+    console.log('Đang edit chi tiết:', editedItem)
+
     const material = findDeXuatVatTuById(editedItem.deXuatVatTuId)
 
     if (material?.loaiVatTu?.isVatTuPhu) {
@@ -235,20 +237,52 @@ const SupplyPage = () => {
       return
     }
 
-    setChiTietCungUng(editedItem)
+    // Set đầy đủ thông tin chi tiết
+    setChiTietCungUng({
+      soLuong: editedItem.soLuong || 0,
+      donGia: editedItem.donGia || 0,
+      thanhTien: editedItem.thanhTien || 0,
+      vat: editedItem.vat || 0,
+      thanhTienVAT: editedItem.thanhTienVAT || 0,
+      nhaCungCap: editedItem.nhaCungCap || '',
+      ghiChu: editedItem.ghiChu || '',
+      deXuatVatTuId: editedItem.deXuatVatTuId,
+    })
+
+    // Set VAT rate dựa vào dữ liệu hiện có
+    if (editedItem.thanhTien && editedItem.thanhTien > 0) {
+      const calculatedVatRate = (editedItem.vat / editedItem.thanhTien) * 100
+      setVatRate(Math.round(calculatedVatRate))
+    }
+
     setEditingChiTietIndex(index)
 
     // Tìm và set vật tư phụ liên quan
     const mainVatTu = deXuatVatTuList.find(
       item => item.id === editedItem.deXuatVatTuId,
     )
-    if (mainVatTu?.childDeXuatVatTu) {
+    if (mainVatTu?.childDeXuatVatTu && mainVatTu.childDeXuatVatTu.length > 0) {
       const mainKlDeNghi = mainVatTu.klDeNghi || 1
       const updatedPhuList = mainVatTu.childDeXuatVatTu.map(phu => ({
         ...phu,
         ratio: phu.klDeNghi / mainKlDeNghi,
+        donGia: phu.donGia || 0,
       }))
       setPendingVatTuPhu(updatedPhuList)
+    } else {
+      setPendingVatTuPhu([])
+    }
+
+    // Load lũy kế nếu cần
+    if (editedItem.deXuatVatTuId) {
+      get(`/ChiTietCungUng/luyke/${editedItem.deXuatVatTuId}`)
+        .then(response => {
+          setLuyKe(response.data.luyKe)
+        })
+        .catch(error => {
+          console.error('Lỗi khi load lũy kế:', error)
+          setLuyKe(0)
+        })
     }
   }
   const handleDeleteChiTiet = index => {
@@ -268,9 +302,8 @@ const SupplyPage = () => {
     )
 
     // Tạo mảng chứa ID của vật tư phụ
+    // Khi bạn xóa vật tư chính, đoạn code này sẽ tự động xóa cả vật tư phụ
     const childIds = mainVatTu?.childDeXuatVatTu?.map(child => child.id) || []
-
-    // Lọc ra danh sách mới không bao gồm vật tư chính và các vật tư phụ liên quan
     const newList = chiTietCungUngList.filter(
       item =>
         item.deXuatVatTuId !== itemToDelete.deXuatVatTuId &&
@@ -305,33 +338,160 @@ const SupplyPage = () => {
 
   const handleSaveSupply = async () => {
     try {
-      const phieuResponse = await post('/PhieuCungUngVatTu', {
-        diaDiem,
-        noiDung,
-        phuongAnThiCongId: id,
-      })
-      const chiTietPayload = chiTietCungUngList.map(item => ({
-        ...item,
-        phieuCungUngVatTuId: phieuResponse.data.id,
-      }))
-      await post('/ChiTietCungUng/batch', chiTietPayload)
-      toast.success('Tạo phiếu thành công')
+      if (editId) {
+        // Trường hợp cập nhật phiếu
+        console.log('Đang cập nhật phiếu:', editId)
+        console.log('Dữ liệu chi tiết cung ứng:', chiTietCungUngList)
+
+        // Cập nhật thông tin phiếu
+        await put(`/PhieuCungUngVatTu/${editId}`, {
+          diaDiem,
+          noiDung,
+          phuongAnThiCongId: id,
+        })
+
+        // Cập nhật chi tiết cung ứng
+        // LƯU Ý: Tùy vào API của bạn, có thể cần xóa chi tiết cũ trước
+        // hoặc có API riêng để cập nhật
+
+        // Phương án 1: Xóa chi tiết cũ và thêm mới
+        await del(`/ChiTietCungUng/phieu/${editId}`)
+
+        // Thêm chi tiết mới với ID phiếu đã có
+        const chiTietPayload = chiTietCungUngList.map(item => ({
+          ...item,
+          phieuCungUngVatTuId: editId,
+        }))
+
+        await post('/ChiTietCungUng/batch', chiTietPayload)
+        toast.success('Cập nhật phiếu thành công')
+      } else {
+        // Trường hợp tạo mới (code gốc)
+        const phieuResponse = await post('/PhieuCungUngVatTu', {
+          diaDiem,
+          noiDung,
+          phuongAnThiCongId: id,
+        })
+
+        const chiTietPayload = chiTietCungUngList.map(item => ({
+          ...item,
+          phieuCungUngVatTuId: phieuResponse.data.id,
+        }))
+
+        await post('/ChiTietCungUng/batch', chiTietPayload)
+        toast.success('Tạo phiếu thành công')
+      }
+
+      // Refresh danh sách và đóng modal
       fetchSupplies()
       setShowModal(false)
       resetForm()
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Lỗi thêm công trình')
+      console.error('Lỗi khi lưu phiếu:', error)
+      toast.error(error.response?.data?.detail || 'Lỗi khi lưu phiếu cung ứng')
     }
   }
 
-  const handleEdit = supply => {
+  const handleEdit = async supply => {
     setDiaDiem(supply.diaDiem)
     setNoiDung(supply.noiDung)
     setEditId(supply.id)
-    setShowModal(true)
-    setChiTietCungUngList(supply.chiTietCungUng || [])
-  }
 
+    try {
+      // Đảm bảo load danh sách đề xuất vật tư TRƯỚC khi load chi tiết
+      await fetchDeXuatVatTu()
+
+      // Sau đó mới load chi tiết cung ứng
+      const chiTietResponse = await get(
+        `/ChiTietCungUng/phieucungung/${supply.id}`,
+      )
+      if (chiTietResponse.data && chiTietResponse.data.length > 0) {
+        setChiTietCungUngList(chiTietResponse.data)
+      } else if (supply.chiTietCungUng && supply.chiTietCungUng.length > 0) {
+        setChiTietCungUngList(supply.chiTietCungUng)
+      } else {
+        setChiTietCungUngList([])
+      }
+
+      // Hiển thị modal
+      setShowModal(true)
+      setCurrentStep(1)
+    } catch (error) {
+      console.error('Lỗi khi load dữ liệu:', error)
+      toast.error('Lỗi khi tải dữ liệu')
+    }
+  }
+  const loadChiTietForEdit = chiTietItem => {
+    if (!chiTietItem) return
+
+    console.log('Loading chi tiết để edit:', chiTietItem)
+
+    // Tìm thông tin vật tư từ deXuatVatTuList
+    const vatTu = deXuatVatTuList.find(
+      item => item.id === chiTietItem.deXuatVatTuId,
+    )
+
+    // Set chi tiết cung ứng để hiển thị trong form
+    setChiTietCungUng({
+      soLuong: chiTietItem.soLuong || 0,
+      donGia: chiTietItem.donGia || 0,
+      thanhTien: chiTietItem.thanhTien || 0,
+      vat: chiTietItem.vat || 0,
+      thanhTienVAT: chiTietItem.thanhTienVAT || 0,
+      nhaCungCap: chiTietItem.nhaCungCap || '',
+      ghiChu: chiTietItem.ghiChu || '',
+      deXuatVatTuId: chiTietItem.deXuatVatTuId,
+    })
+
+    // Load thông tin lũy kế nếu có
+    if (chiTietItem.deXuatVatTuId) {
+      get(`/ChiTietCungUng/luyke/${chiTietItem.deXuatVatTuId}`)
+        .then(response => {
+          setLuyKe(response.data.luyKe)
+        })
+        .catch(error => {
+          console.error('Lỗi khi load lũy kế:', error)
+          setLuyKe(0)
+        })
+    }
+
+    // Xử lý vật tư phụ nếu có
+    if (vatTu?.childDeXuatVatTu && vatTu.childDeXuatVatTu.length > 0) {
+      const mainKlDeNghi = vatTu.klDeNghi || 1
+      const updatedPhuList = vatTu.childDeXuatVatTu.map(phu => ({
+        ...phu,
+        ratio: phu.klDeNghi / mainKlDeNghi,
+        donGia: phu.donGia || 0,
+      }))
+      setPendingVatTuPhu(updatedPhuList)
+    } else {
+      setPendingVatTuPhu([])
+    }
+  }
+  const handleNextStepWithDataLoad = async () => {
+    if (!diaDiem || !noiDung) {
+      toast.error('Vui lòng điền đầy đủ thông tin')
+      return
+    }
+
+    try {
+      // Load danh sách đề xuất vật tư
+      await fetchDeXuatVatTu()
+
+      // Chuyển sang bước 2
+      setCurrentStep(2)
+
+      // Nếu đang trong chế độ edit, đảm bảo chi tiết cung ứng được hiển thị
+      if (editId && chiTietCungUngList.length > 0) {
+        console.log(
+          'Hiển thị lại chi tiết cung ứng khi chuyển step trong edit mode',
+        )
+      }
+    } catch (error) {
+      console.error('Lỗi khi load dữ liệu cho bước 2:', error)
+      toast.error('Có lỗi xảy ra khi tải dữ liệu vật tư')
+    }
+  }
   const handleDelete = async supplyId => {
     if (window.confirm('Bạn có chắc chắn muốn xóa phiếu này?')) {
       try {
@@ -706,7 +866,7 @@ const SupplyPage = () => {
                           <option value=''>-- Chọn vật tư --</option>
                           {deXuatVatTuList.map(item => (
                             <option key={item.id} value={item.id}>
-                              {item.loaiVatTu.name}
+                              {item.loaiVatTu?.name}
                             </option>
                           ))}
                         </select>
@@ -1020,12 +1180,14 @@ const SupplyPage = () => {
 
               <div className='flex justify-end mt-6'>
                 <button
-                  onClick={
-                    currentStep === 1 ? handleNextStep : handleSaveSupply
-                  }
+                  onClick={handleNextStepWithDataLoad}
                   className='bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 shadow-md hover:shadow-lg transition-all duration-300'
                 >
-                  {currentStep === 1 ? 'Tiếp theo' : 'Lưu'}
+                  {currentStep === 1
+                    ? 'Tiếp theo'
+                    : editId
+                    ? 'Cập nhật'
+                    : 'Lưu'}
                 </button>
               </div>
             </div>
