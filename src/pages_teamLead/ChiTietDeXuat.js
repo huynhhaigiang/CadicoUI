@@ -53,6 +53,7 @@ const ProjectDetailsPage = () => {
     async (endpoint, key) => {
       try {
         const res = await get(`/${endpoint}/${projectId}`)
+        console.log(res.data)
         return { key, data: res.data }
       } catch (error) {
         console.error(`Error fetching ${key}:`, error)

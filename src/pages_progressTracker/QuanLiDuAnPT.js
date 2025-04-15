@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import React, { useEffect, useState } from 'react'
-import { FaEye } from 'react-icons/fa'
+import { FaDownload, FaEye } from 'react-icons/fa'
 import Skeleton from 'react-loading-skeleton'
 import 'react-loading-skeleton/dist/skeleton.css'
 import { useNavigate } from 'react-router-dom'
@@ -188,8 +188,10 @@ const ProjectApprovalListTP = () => {
                               <td className='px-6 py-4'>
                                 <div className='flex space-x-4 text-gray-600'>
                                   <DownloadButton
-                                    duongdan={`/phuonganthicong/export?patcId=${project.id}&companyName="CTYCADICO"`}
-                                  />
+                                    duongdan={`/phuonganthicong/export?patcId=${project.id}&companyName=CTYCADICO`}
+                                  >
+                                    <FaDownload className='h-4 w-4 text-blue flex-shrink-0' />
+                                  </DownloadButton>
                                   <button
                                     onClick={() =>
                                       navigate(

@@ -65,6 +65,7 @@ const ProjectManagement = () => {
     { key: 'ghiChu', label: 'Ghi chú sau giá trị hợp đồng', type: 'textarea' },
     { key: 'ngayHopDong', label: 'Ngày hợp đồng', type: 'date' },
     { key: 'ngayTaoPhuongAn', label: 'Ngày tạo phương án', type: 'date' },
+    { key: 'phanTramThauPhu', label: 'Phần trăm thầu phụ %', type: 'number' },
     { key: 'batDauThiCong', label: 'Ngày bắt đầu', type: 'date' },
     { key: 'ketThucThiCong', label: 'Ngày kết thúc', type: 'date' },
     {
@@ -87,6 +88,11 @@ const ProjectManagement = () => {
     {
       key: 'ghiChuChiPhiNhanCong',
       label: 'Ghi chú chi phí nhân công',
+      type: 'textarea',
+    },
+    {
+      key: 'ghiChusauDeXuatVatTu',
+      label: 'Ghi chú sau đề xuất vật tư',
       type: 'textarea',
     },
   ]

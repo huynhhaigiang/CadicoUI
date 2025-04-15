@@ -24,6 +24,7 @@ const ProjectForm = ({ onCreate }) => {
     dateOfenTry: '',
     costNote: '',
     ghiChuSauTienDoThiCong: '',
+    ghiChusauDeXuatVatTu: '',
   })
 
   const [projects, setProjects] = useState([])
@@ -142,6 +143,7 @@ const ProjectForm = ({ onCreate }) => {
       ngayTaoPhuongAn: projectData.dateOfenTry,
       ghiChuChiPhiNhanCong: projectData.costNote,
       ghiChuSauTienDoThiCong: projectData.ghiChuSauTienDoThiCong,
+      ghiChusauDeXuatVatTu: projectData.ghiChusauDeXuatVatTu,
     }
 
     try {
@@ -189,6 +191,7 @@ const ProjectForm = ({ onCreate }) => {
       dateOfenTry: '',
       costNote: '',
       ghiChuSauTienDoThiCong: '',
+      ghiChusauDeXuatVatTu: '',
     })
     setNotification(null)
   }
@@ -469,18 +472,30 @@ const ProjectForm = ({ onCreate }) => {
               className='mt-1 p-2 border w-full rounded-md'
             />
           </div>
-          <div>
-            <label className='block text-sm font-medium text-gray-700'>
-              Ghi chú chi phí nhân công
-            </label>
-            <textarea
-              name='costNote'
-              value={projectData.costNote}
-              onChange={handleInputChange}
-              className='mt-1 p-2 border w-full rounded-md'
-              rows='4'
-            />
-          </div>
+        </div>
+        <div>
+          <label className='block text-sm font-medium text-gray-700'>
+            Ghi chú chi phí nhân công
+          </label>
+          <textarea
+            name='costNote'
+            value={projectData.costNote}
+            onChange={handleInputChange}
+            className='mt-1 p-2 border w-full rounded-md'
+            rows='2'
+          />
+        </div>
+        <div>
+          <label className='block text-sm font-medium text-gray-700'>
+            Ghi chú sau đề xuất vật tư
+          </label>
+          <textarea
+            name='ghiChusauDeXuatVatTu'
+            value={projectData.ghiChusauDeXuatVatTu}
+            onChange={handleInputChange}
+            className='mt-1 p-2 border w-full rounded-md'
+            rows='2'
+          />
         </div>
 
         <div className='flex justify-end space-x-4 mt-6'>
