@@ -108,13 +108,20 @@ const WorkItems = () => {
   }
 
   const filteredProjects = useMemo(() => {
-    return projects.filter(project => {
+    const filtered = projects.filter(project => {
       const projectId = project.id ? String(project.id).toLowerCase() : ''
       const projectName = project.name ? project.name.toLowerCase() : ''
       return (
         projectId.includes(searchTerm.toLowerCase()) ||
         projectName.includes(searchTerm.toLowerCase())
       )
+    })
+
+    // Sắp xếp theo tên hạng mục (A-Z)
+    return filtered.sort((a, b) => {
+      const nameA = a.name?.toLowerCase() || ''
+      const nameB = b.name?.toLowerCase() || ''
+      return nameA.localeCompare(nameB)
     })
   }, [projects, searchTerm])
 

@@ -82,7 +82,7 @@ const ConstructionComponent = () => {
           <thead>
             <tr className='bg-blue-800 text-white'>
               <th className='px-4 py-2 text-left'>Mã công trình</th>
-              <th className='px-4 py-2 text-left'>Tên công trình</th>
+              <th className='px-4 py-2 text-center'>Tên công trình</th>
               <th className='px-4 py-2 text-left'>Chủ đầu tư</th>
               <th className='px-4 py-2 text-center'>Thao tác</th>
             </tr>
@@ -330,14 +330,17 @@ const DeleteModal = ({ show, onClose, project, refreshData }) => {
 // Reusable Modal Component
 const Modal = ({ onClose, title, children }) => (
   <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4'>
-    <div className='bg-white rounded-lg w-full max-w-md p-6'>
-      <div className='flex justify-between items-center mb-4'>
-        <h3 className='text-xl font-semibold'>{title}</h3>
-        <button onClick={onClose} className='text-gray-500 hover:text-gray-700'>
+    <div className='bg-white rounded-lg w-full max-w-4xl p-5 shadow-xl transform transition-all duration-300 ease-in-out'>
+      <div className='flex justify-between items-center mb-6'>
+        <h3 className='text-2xl font-bold text-gray-800'>{title}</h3>
+        <button
+          onClick={onClose}
+          className='text-gray-500 hover:text-gray-700 text-2xl transition-colors duration-200'
+        >
           ✕
         </button>
       </div>
-      {children}
+      <div className='bg-gray-50 rounded-lg p-6'>{children}</div>
     </div>
   </div>
 )

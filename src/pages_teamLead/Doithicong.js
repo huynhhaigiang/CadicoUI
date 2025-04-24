@@ -159,7 +159,9 @@ const ExecutionTeamComponent = () => {
               <option value=''>Chọn người phụ trách</option>
               {appUsers.map(user => (
                 <option key={user.id} value={user.id}>
-                  {user.fullName || `User ${user.id}`}
+                  {user.fullName
+                    ? `${user.fullName} (${user.role.name})`
+                    : `User ${user.id} (${user.role.name})`}
                 </option>
               ))}
             </select>

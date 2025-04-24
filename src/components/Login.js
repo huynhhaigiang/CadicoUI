@@ -81,7 +81,7 @@ const Login = () => {
               CADICO
             </div>
             <p className='text-blue-600 mt-3 text-sm font-medium'>
-              Hệ thống quản lý tích hợp thông minh V1.F1.4.14
+              Hệ thống quản lý tích hợp thông minh V1.F1.4.22
             </p>
           </div>
         </div>

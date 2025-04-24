@@ -10,6 +10,7 @@ const Supplies = () => {
   const [newProjectName, setNewProjectName] = useState('')
   const [selectedInvestor, setSelectedInvestor] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
+  const [sortOrder, setSortOrder] = useState('asc') // 'asc' hoặc 'desc'
 
   // Lấy danh sách vật tư
   const fetchProjects = async () => {
@@ -112,7 +113,7 @@ const Supplies = () => {
   }
 
   const filteredProjects = useMemo(() => {
-    return projects.filter(project => {
+    const filtered = projects.filter(project => {
       const projectName = project.name ? project.name.toLowerCase() : ''
       const projectQuyCach = project.quyCach
         ? project.quyCach.toLowerCase()
@@ -121,6 +122,13 @@ const Supplies = () => {
         projectName.includes(searchTerm.toLowerCase()) ||
         projectQuyCach.includes(searchTerm.toLowerCase())
       )
+    })
+
+    // Sắp xếp theo tên vật tư (A-Z)
+    return filtered.sort((a, b) => {
+      const nameA = a.name?.toLowerCase() || ''
+      const nameB = b.name?.toLowerCase() || ''
+      return nameA.localeCompare(nameB)
     })
   }, [projects, searchTerm])
 
@@ -228,7 +236,7 @@ const Supplies = () => {
                     : 'hover:bg-gray-50'
                 }`}
               >
-                <td className='border border-gray-200 px-4 py-2 text-center'>
+                <td className='border border-gray-200 px-4 py-2 '>
                   {project.name}
                 </td>
                 <td className='border border-gray-200 px-4 py-2'>
