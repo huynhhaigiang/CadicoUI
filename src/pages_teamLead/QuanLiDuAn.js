@@ -281,20 +281,36 @@ const ProjectManagement = () => {
   const ConstructionRow = ({ construction }) => (
     <div className='bg-white rounded-lg shadow-sm overflow-hidden'>
       <div
-        className={`p-4 cursor-pointer hover:bg-gray-50 flex items-center justify-between ${
+        className={`p-4 cursor-pointer hover:bg-gray-50 flex justify-between items-start ${
           state.expandedConstructionId === construction.id ? 'bg-blue-50' : ''
         }`}
         onClick={() => handleConstructionClick(construction)}
       >
+        {/* Bên trái: Mã + Tên công trình */}
         <div className='flex-1'>
-          <div className='font-medium text-gray-900'>{construction.code}</div>
-          <div className='text-sm text-gray-500'>{construction.name}</div>
+          <div className='font-semibold text-gray-900 text-base'>
+            {construction.code}
+          </div>
+          <div className='text-sm text-gray-500 mt-1'>{construction.name}</div>
         </div>
-        <FaChevronDown
-          className={`transform transition-transform ${
-            state.expandedConstructionId === construction.id ? 'rotate-180' : ''
-          }`}
-        />
+
+        {/* Bên phải: Nút download + icon dropdown */}
+        <div className='flex items-center space-x-3 ml-4'>
+          <DownloadButton
+            duongdan={`/PhuongAnThiCong/export-final?congTrinhId=${construction.id}&companyName=CTYHHD`}
+            className='text-blue-600 hover:text-blue-800 transition-colors'
+          >
+            <FaDownload className='w-5 h-5' />
+          </DownloadButton>
+
+          <FaChevronDown
+            className={`transition-transform duration-200 ${
+              state.expandedConstructionId === construction.id
+                ? 'rotate-180'
+                : ''
+            }`}
+          />
+        </div>
       </div>
 
       <AnimatePresence>

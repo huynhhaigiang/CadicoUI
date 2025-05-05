@@ -840,21 +840,39 @@ const ProjectDetailsGD = () => {
           {error ? (
             <div className='text-center py-8 text-red-600'>{error}</div>
           ) : (
-            <DataTable
-              columns={[
-                { header: 'Tên vật tư', accessor: 'loaiVatTu.name' },
-                { header: 'Quy cách', accessor: 'loaiVatTu.quyCach' },
-                { header: 'ĐVT', accessor: 'loaiVatTu.dvt.name' },
-                { header: 'KL Thiết kế', accessor: 'klThietKe' },
-                { header: 'KL Đề nghị', accessor: 'klDeNghi' },
-                { header: 'KL Lũy kế', accessor: 'klLuyKe' },
-                { header: 'Đơn giá', accessor: 'donGia' },
-                { header: 'Thành tiền', accessor: 'thanhTien' },
-                { header: 'Ghi chú', accessor: 'ghiChu' },
-              ]}
-              data={data.materials}
-              loading={loading}
-            />
+            <>
+              {/* Ghi chú nếu có */}
+              {data.general?.ghiChusauDeXuatVatTu && (
+                <div className='bg-blue-50 border border-blue-100 rounded-xl p-6 flex items-start space-x-4 mb-4'>
+                  {/* Icon container */}
+                  <div className='flex-shrink-0 bg-blue-100 p-2.5 rounded-lg'>
+                    <FaBusinessTime className='text-green-600 text-2xl' />
+                  </div>
+
+                  {/* Nội dung */}
+                  <div className='flex-1'>
+                    <p className='text-gray-700 text-base font-medium leading-normal'>
+                      {data.general.ghiChusauDeXuatVatTu}
+                    </p>
+                  </div>
+                </div>
+              )}
+              <DataTable
+                columns={[
+                  { header: 'Tên vật tư', accessor: 'loaiVatTu.name' },
+                  { header: 'Quy cách', accessor: 'loaiVatTu.quyCach' },
+                  { header: 'ĐVT', accessor: 'loaiVatTu.dvt.name' },
+                  { header: 'KL Thiết kế', accessor: 'klThietKe' },
+                  { header: 'KL Đề nghị', accessor: 'klDeNghi' },
+                  { header: 'KL Lũy kế', accessor: 'klLuyKe' },
+                  { header: 'Đơn giá', accessor: 'donGia' },
+                  { header: 'Thành tiền', accessor: 'thanhTien' },
+                  { header: 'Ghi chú', accessor: 'ghiChu' },
+                ]}
+                data={data.materials}
+                loading={loading}
+              />
+            </>
           )}
         </div>
 
