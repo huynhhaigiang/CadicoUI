@@ -2,7 +2,6 @@ import { format } from 'date-fns'
 import { AnimatePresence, motion } from 'framer-motion'
 import React, { useEffect, useState } from 'react'
 import {
-  FaChevronDown,
   FaDownload,
   FaEdit,
   FaExclamationTriangle,
@@ -20,7 +19,6 @@ import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { Tooltip } from 'react-tooltip'
 import { del, get, put } from '../api/axiosClient'
-
 import DownloadButton from '../components/DownloadButton'
 const statusConfig = {
   0: { color: 'bg-gray-100 text-gray-800', label: 'Bản nháp' },
@@ -36,6 +34,8 @@ const ProjectManagement = () => {
   const [downloadModalOpen, setDownloadModalOpen] = useState(false)
   const [selectedProjectForDownload, setSelectedProjectForDownload] =
     useState(null)
+  const [selectedConstruction, setSelectedConstruction] = useState(null)
+
   const [state, setState] = useState({
     constructions: [],
     projects: [],
@@ -295,22 +295,15 @@ const ProjectManagement = () => {
         </div>
 
         {/* Bên phải: Nút download + icon dropdown */}
-        <div className='flex items-center space-x-3 ml-4'>
-          <DownloadButton
-            duongdan={`/PhuongAnThiCong/export-final?congTrinhId=${construction.id}&companyName=CTYHHD`}
-            className='text-blue-600 hover:text-blue-800 transition-colors'
-          >
-            <FaDownload className='w-5 h-5' />
-          </DownloadButton>
-
-          <FaChevronDown
-            className={`transition-transform duration-200 ${
-              state.expandedConstructionId === construction.id
-                ? 'rotate-180'
-                : ''
-            }`}
-          />
-        </div>
+        <button
+          onClick={() => {
+            setSelectedConstruction(construction)
+            setDownloadModalOpen(true)
+          }}
+          className='text-blue-600 hover:text-blue-800 transition-colors'
+        >
+          <FaDownload className='w-5 h-5' />
+        </button>
       </div>
 
       <AnimatePresence>
@@ -832,6 +825,66 @@ const ProjectManagement = () => {
                   >
                     Xác nhận
                   </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {downloadModalOpen && selectedConstruction && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className='fixed inset-0 bg-black/30 backdrop-blur-md z-50 flex items-center justify-center p-4'
+            >
+              <motion.div
+                initial={{ scale: 0.95, y: 20 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                className='bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-8 max-w-lg w-full border border-gray-100 relative'
+              >
+                {/* Nút đóng */}
+                <button
+                  onClick={() => {
+                    setDownloadModalOpen(false)
+                    setSelectedConstruction(null)
+                  }}
+                  className='absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full transition-colors'
+                >
+                  <FaTimes className='h-6 w-6 text-gray-600' />
+                </button>
+
+                <div className='text-center space-y-4'>
+                  <div className='mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 shadow-lg'>
+                    <FaDownload className='h-12 w-12 text-white transform -translate-y-0.5' />
+                  </div>
+                  <h3 className='text-3xl font-bold text-gray-900'>
+                    Tải Xuống
+                  </h3>
+                  <p className='text-gray-600 text-base font-medium'>
+                    Chọn công ty để tải tài liệu công trình:
+                  </p>
+                </div>
+
+                {/* Các nút tải xuống */}
+                <div className='mt-8 flex flex-col gap-5'>
+                  <DownloadButton
+                    duongdan={`/PhuongAnThiCong/export-final?congTrinhId=${selectedConstruction.id}&companyName=CTYCADICO`}
+                    className='w-full py-4 bg-gradient-to-br from-blue-300 to-blue-600 text-white rounded-xl font-semibold shadow-md hover:shadow-lg transform transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center px-6 gap-3'
+                  >
+                    <FaDownload className='h-6 w-6 text-white flex-shrink-0' />
+                    <span>Tải File - CTY CP CADICO</span>
+                  </DownloadButton>
+
+                  <DownloadButton
+                    duongdan={`/PhuongAnThiCong/export-final?congTrinhId=${selectedConstruction.id}&companyName=CTYHHD`}
+                    className='w-full py-4 bg-gradient-to-br from-green-300 to-green-600 text-white rounded-xl font-semibold shadow-md hover:shadow-lg transform transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center px-6 gap-3'
+                  >
+                    <FaDownload className='h-6 w-6 text-white flex-shrink-0' />
+                    <span>Tải File - CTY CP Hưng Hưng Đạt</span>
+                  </DownloadButton>
                 </div>
               </motion.div>
             </motion.div>
