@@ -1,4 +1,3 @@
-import React from 'react'
 import {
   Navigate,
   Outlet,
@@ -12,6 +11,7 @@ import Login from './components/Login'
 import Projects from './pages_teamLead/DuAn'
 
 import { AuthProvider, useAuth } from './contexs/AuthContext'
+import { NotificationProvider } from './context/NotificationContext'
 import ProjectDetailsGD from './pages_director/ChiTietDuAnGD'
 import SupplyDetailPageGD from './pages_director/ChiTietPhieuGD'
 import ApproveTeamComponentGD from './pages_director/DuyetDoi'
@@ -58,144 +58,152 @@ import ProjectApprovalListPGD from './pages_vicedirector/QuanLiDuAnPGD'
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <Routes>
-          {/* Gọi AuthHandler để kiểm tra xem user đã login trước đó chưa */}
-          <Route path='/' element={<AuthHandler />} />
-          <Route path='/loadingPage' element={<LoadingPage />} />
-          <Route element={<BaseLayout />}>
-            <Route path='/dashboard' element={<Dashboard />} />
-            <Route
-              path='/notificationpage'
-              element={<NotificationComponent />}
-            />
-            <Route path='/userprofile' element={<UserProfile />} />
-            {/* Chức năng đội trưởng */}
-            <Route path='/projects' element={<Projects />}>
-              <Route index element={<DefaultProjectView />} />
-              <Route path='construction' element={<ConstructionComponent />} />
-              <Route path='investor' element={<InvestorComponent />} />
-              <Route path='unit' element={<Unit />} />
-              <Route path='typeofwork' element={<TypeOfWork />} />
-              <Route path='workitems' element={<WorkItems />} />
-              <Route
-                path='executionteam'
-                element={<ExecutionTeamComponent />}
-              />
-              {/* Loại vật tư */}
-              <Route path='supplies' element={<Supplies />} />
-              <Route path='upload' element={<ProjectForm />} />
-            </Route>
-            <Route path='/projectmanagement'>
-              <Route index element={<ProjectManagement />} />
-              {/* Route cho các đề xuất */}
-              <Route path=':phuongAnThiCongId' element={<RecommendationPage />}>
-                <Route index element={<CostManagement />} />
-                <Route path='cost' element={<CostManagement />} />
-                <Route path='othercost' element={<OtherCostManagement />} />
-                <Route path='material' element={<MaterialRequestForm />} />
+    <NotificationProvider>
+      <AuthProvider>
+        <Router>
+          <Routes>
+            {/* Gọi AuthHandler để kiểm tra xem user đã login trước đó chưa */}
+            <Route path='/' element={<AuthHandler />} />
+            <Route path='/loadingPage' element={<LoadingPage />} />
+            <Route element={<BaseLayout />}>
+              <Route path='/dashboard' element={<Dashboard />} />
+              <Route path='/thong-bao' element={<NotificationComponent />} />
+              <Route path='/userprofile' element={<UserProfile />} />
+              {/* Chức năng đội trưởng */}
+              <Route path='/projects' element={<Projects />}>
+                <Route index element={<DefaultProjectView />} />
+                <Route
+                  path='construction'
+                  element={<ConstructionComponent />}
+                />
+                <Route path='investor' element={<InvestorComponent />} />
+                <Route path='unit' element={<Unit />} />
+                <Route path='typeofwork' element={<TypeOfWork />} />
+                <Route path='workitems' element={<WorkItems />} />
+                <Route
+                  path='executionteam'
+                  element={<ExecutionTeamComponent />}
+                />
+                {/* Loại vật tư */}
+                <Route path='supplies' element={<Supplies />} />
+                <Route path='upload' element={<ProjectForm />} />
+              </Route>
+              <Route path='/projectmanagement'>
+                <Route index element={<ProjectManagement />} />
+                {/* Route cho các đề xuất */}
+                <Route
+                  path=':phuongAnThiCongId'
+                  element={<RecommendationPage />}
+                >
+                  <Route index element={<CostManagement />} />
+                  <Route path='cost' element={<CostManagement />} />
+                  <Route path='othercost' element={<OtherCostManagement />} />
+                  <Route path='material' element={<MaterialRequestForm />} />
+                </Route>
+
+                {/* Route mới cho trang chi tiết */}
+                <Route
+                  path=':projectId/details'
+                  element={<ProjectDetailsPage />}
+                />
               </Route>
 
-              {/* Route mới cho trang chi tiết */}
+              {/* Chức năng trang trưởng phòng */}
               <Route
-                path=':projectId/details'
-                element={<ProjectDetailsPage />}
+                path='/projectapproval'
+                element={<ProjectApprovalList />}
+              />
+              <Route
+                path='/projectapproval/:projectId/details'
+                element={<ProjectDetails />}
+              />
+              <Route
+                path='/projectmanagementstack'
+                element={<ProjectManagementStack />}
+              />
+              <Route
+                path='/taskassignment/:phuongAnId'
+                element={<TaskAssignmentPage />}
+              />
+              <Route
+                path='/progressreportpage/:phanCongCongViecId'
+                element={<ProgressReportPage />}
+              />
+
+              {/* Chức năng trang PGD */}
+              <Route
+                path='/projectapprovalPGD'
+                element={<ProjectApprovalListPGD />}
+              />
+              <Route
+                path='/projectapprovalPGD/:projectId/details'
+                element={<ProjectDetailsPGD />}
+              />
+              <Route
+                path='/projectmanagementstackTP'
+                element={<ProjectManagementStackTP />}
+              />
+              <Route
+                path='/taskassignmentTP/:phuongAnId'
+                element={<TaskAssignmentPageTP />}
+              />
+              <Route
+                path='/progressreportpageTP/:congViecId'
+                element={<ProgressReportPageTP />}
+              />
+              {/*Chức năng trang GD*/}
+              <Route path='/approveTeam' element={<ApproveTeamComponentGD />} />
+              <Route
+                path='/projectapprovalGD'
+                element={<ProjectApprovalListGD />}
+              />
+              <Route
+                path='/projectapprovalGD/:projectId/details'
+                element={<ProjectDetailsGD />}
+              />
+              <Route
+                path='/supplymanagementGD'
+                element={<SupplyManagementGD />}
+              />
+              <Route path='/phuong-anGD/:id' element={<SupplyPageGD />} />
+              <Route
+                path='/supply-detailGD/:id'
+                element={<SupplyDetailPageGD />}
+              />
+
+              {/*Chức năng nhân viên cung ứng vật tư */}
+              <Route path='/supplymanagement' element={<SupplyManagement />} />
+              <Route path='/phuong-an/:id' element={<SupplyPage />} />
+              <Route path='/supply-detail/:id' element={<SupplyDetailPage />} />
+              <Route path='/bovattumanager' element={<BoVatTuManager />} />
+              {/*Chức năng đội trưởng cung ứng vật tư */}
+              <Route
+                path='/supplymanagementTP'
+                element={<SupplyManagementTP />}
+              />
+              <Route path='/phuong-anTP/:id' element={<SupplyPageTP />} />
+              <Route
+                path='/supply-detailTP/:id'
+                element={<SupplyDetailPageTP />}
+              />
+              <Route
+                path='/submaterialmanagement'
+                element={<SubMaterialManagement />}
+              />
+              {/*Chức năng chuyên viên kiểm soát tiến độ */}
+              <Route
+                path='/projectapprovalTP'
+                element={<ProjectApprovalListTP />}
+              />
+              <Route
+                path='/projectmanagementTP/:projectId/details'
+                element={<ProjectDetailsTP />}
               />
             </Route>
-
-            {/* Chức năng trang trưởng phòng */}
-            <Route path='/projectapproval' element={<ProjectApprovalList />} />
-            <Route
-              path='/projectapproval/:projectId/details'
-              element={<ProjectDetails />}
-            />
-            <Route
-              path='/projectmanagementstack'
-              element={<ProjectManagementStack />}
-            />
-            <Route
-              path='/taskassignment/:phuongAnId'
-              element={<TaskAssignmentPage />}
-            />
-            <Route
-              path='/progressreportpage/:phanCongCongViecId'
-              element={<ProgressReportPage />}
-            />
-
-            {/* Chức năng trang PGD */}
-            <Route
-              path='/projectapprovalPGD'
-              element={<ProjectApprovalListPGD />}
-            />
-            <Route
-              path='/projectapprovalPGD/:projectId/details'
-              element={<ProjectDetailsPGD />}
-            />
-            <Route
-              path='/projectmanagementstackTP'
-              element={<ProjectManagementStackTP />}
-            />
-            <Route
-              path='/taskassignmentTP/:phuongAnId'
-              element={<TaskAssignmentPageTP />}
-            />
-            <Route
-              path='/progressreportpageTP/:congViecId'
-              element={<ProgressReportPageTP />}
-            />
-            {/*Chức năng trang GD*/}
-            <Route path='/approveTeam' element={<ApproveTeamComponentGD />} />
-            <Route
-              path='/projectapprovalGD'
-              element={<ProjectApprovalListGD />}
-            />
-            <Route
-              path='/projectapprovalGD/:projectId/details'
-              element={<ProjectDetailsGD />}
-            />
-            <Route
-              path='/supplymanagementGD'
-              element={<SupplyManagementGD />}
-            />
-            <Route path='/phuong-anGD/:id' element={<SupplyPageGD />} />
-            <Route
-              path='/supply-detailGD/:id'
-              element={<SupplyDetailPageGD />}
-            />
-
-            {/*Chức năng nhân viên cung ứng vật tư */}
-            <Route path='/supplymanagement' element={<SupplyManagement />} />
-            <Route path='/phuong-an/:id' element={<SupplyPage />} />
-            <Route path='/supply-detail/:id' element={<SupplyDetailPage />} />
-            <Route path='/bovattumanager' element={<BoVatTuManager />} />
-            {/*Chức năng đội trưởng cung ứng vật tư */}
-            <Route
-              path='/supplymanagementTP'
-              element={<SupplyManagementTP />}
-            />
-            <Route path='/phuong-anTP/:id' element={<SupplyPageTP />} />
-            <Route
-              path='/supply-detailTP/:id'
-              element={<SupplyDetailPageTP />}
-            />
-            <Route
-              path='/submaterialmanagement'
-              element={<SubMaterialManagement />}
-            />
-            {/*Chức năng chuyên viên kiểm soát tiến độ */}
-            <Route
-              path='/projectapprovalTP'
-              element={<ProjectApprovalListTP />}
-            />
-            <Route
-              path='/projectmanagementTP/:projectId/details'
-              element={<ProjectDetailsTP />}
-            />
-          </Route>
-        </Routes>
-      </Router>
-    </AuthProvider>
+          </Routes>
+        </Router>
+      </AuthProvider>
+    </NotificationProvider>
   )
 }
 

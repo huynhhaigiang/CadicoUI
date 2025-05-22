@@ -1,10 +1,9 @@
 import { jwtDecode } from 'jwt-decode'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { FiCheck, FiChevronDown, FiMenu, FiUser } from 'react-icons/fi'
 import {
   RiDashboardLine,
   RiMessage2Line,
-  RiNotification3Line,
   RiSettings4Line,
   RiShoppingCart2Line,
   RiUserAddLine,
@@ -13,6 +12,7 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import Swal from 'sweetalert2'
 import { useAuth } from '../contexs/AuthContext'
+import NotificationBadge from './NotificationBadge'
 
 const Navigation = ({ onToggle }) => {
   const [userRole, setUserRole] = useState('guest')
@@ -75,9 +75,9 @@ const Navigation = ({ onToggle }) => {
   const roleBasedNavItems = {
     teamlead: [
       {
-        icon: <RiNotification3Line />,
+        icon: <NotificationBadge />,
         text: 'Thông báo',
-        to: '/notificationpage',
+        to: '/thong-bao',
       },
       {
         icon: <FiUser />,
@@ -108,9 +108,9 @@ const Navigation = ({ onToggle }) => {
     ],
     manager: [
       {
-        icon: <RiNotification3Line />,
+        icon: <NotificationBadge />,
         text: 'Thông báo',
-        to: '/notificationpage',
+        to: '/thong-bao',
       },
       {
         icon: <RiShoppingCart2Line />,
@@ -136,9 +136,9 @@ const Navigation = ({ onToggle }) => {
     ],
     'vice-director': [
       {
-        icon: <RiNotification3Line />,
+        icon: <NotificationBadge />,
         text: 'Thông báo',
-        to: '/notificationpage',
+        to: '/thong-bao',
       },
       {
         icon: <RiShoppingCart2Line />,
@@ -159,9 +159,9 @@ const Navigation = ({ onToggle }) => {
     ],
     director: [
       {
-        icon: <RiNotification3Line />,
+        icon: <NotificationBadge />,
         text: 'Thông báo',
-        to: '/notificationpage',
+        to: '/thong-bao',
       },
       {
         icon: <FiCheck />,
@@ -193,9 +193,9 @@ const Navigation = ({ onToggle }) => {
     employee: [
       { icon: <RiDashboardLine />, text: 'Dashboard', to: '/dashboard' },
       {
-        icon: <RiNotification3Line />,
+        icon: <NotificationBadge />,
         text: 'Thông báo',
-        to: '/notificationpage',
+        to: '/thong-bao',
       },
       {
         icon: <RiUserAddLine />,
@@ -217,9 +217,9 @@ const Navigation = ({ onToggle }) => {
     ],
     'material-supply': [
       {
-        icon: <RiNotification3Line />,
+        icon: <NotificationBadge />,
         text: 'Thông báo',
-        to: '/notificationpage',
+        to: '/thong-bao',
       },
       {
         icon: <RiShoppingCart2Line />,
@@ -240,9 +240,9 @@ const Navigation = ({ onToggle }) => {
     ],
     'material-supply-employee': [
       {
-        icon: <RiNotification3Line />,
+        icon: <NotificationBadge />,
         text: 'Thông báo',
-        to: '/notificationpage',
+        to: '/thong-bao',
       },
       {
         icon: <RiShoppingCart2Line />,
@@ -273,9 +273,9 @@ const Navigation = ({ onToggle }) => {
     ],
     'progress-tracker': [
       {
-        icon: <RiNotification3Line />,
+        icon: <NotificationBadge />,
         text: 'Thông báo',
-        to: '/notificationpage',
+        to: '/thong-bao',
       },
       {
         icon: <RiShoppingCart2Line />,

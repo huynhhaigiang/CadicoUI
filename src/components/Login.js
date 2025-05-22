@@ -5,7 +5,7 @@ import {
   faUser,
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { post } from '../api/axiosClient'
@@ -47,7 +47,7 @@ const Login = () => {
 
       setShowLoading(true)
       setTimeout(() => {
-        navigate('/notificationpage')
+        navigate('/thong-bao')
       }, 2000)
     } catch (err) {
       toast.error(
@@ -81,7 +81,7 @@ const Login = () => {
               CADICO
             </div>
             <p className='text-blue-600 mt-3 text-sm font-medium'>
-              Hệ thống quản lý tích hợp thông minh V1.F1.9.5
+              Hệ thống quản lý tích hợp thông minh V1.F1.20.5
             </p>
           </div>
         </div>
